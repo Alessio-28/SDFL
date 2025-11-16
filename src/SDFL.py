@@ -4,10 +4,10 @@ import numpy.typing as npt
 
 @dataclass
 class Parameters:
-    theta : np.float64
-    gamma : np.float64
-    c : np.float64
-    eta : np.float64
+    theta   : np.float64
+    gamma   : np.float64
+    c       : np.float64
+    eta     : np.float64
     epsilon : np.float64
 
 def bound(param : Parameters, step : np.float64) -> np.float64:
@@ -15,7 +15,7 @@ def bound(param : Parameters, step : np.float64) -> np.float64:
 
 # Placeholder
 def F(x : npt.NDArray[np.float64]) -> np.float64:
-    return np.sum(x)
+    return np.sum(x**2)
 
 def SDFL(x_0 : npt.NDArray[np.float64], step_0 : npt.NDArray[np.float64], param : Parameters) -> npt.NDArray[np.float64]:
     nF : int = 0
@@ -58,7 +58,8 @@ def SDFL(x_0 : npt.NDArray[np.float64], step_0 : npt.NDArray[np.float64], param 
                     a = b
                     b = a * 2
                     nF += 1
-
+                step[i] = a
+                y += a * base
             base[i] = 0
 
         if np.array_equal(y, x):
