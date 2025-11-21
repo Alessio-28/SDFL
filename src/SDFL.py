@@ -83,6 +83,20 @@ def SDFL(F : Callable[[NDArray[float64]], float64], x_0 : NDArray[float64], step
 
     return x
 
+#########################################################################
+
+def test(name : str, f : Callable[[NDArray[float64]], float64], minimum : list[float], x : list[float], step : list[float], param : Parameters) -> None:
+    m      = np.array( minimum, dtype = float64)
+    x_0    = np.array( x, dtype = float64)
+    step_0 = np.array( step, dtype = float64) # Passo iniziale unitario
+    x_m = SDFL(f, x_0, step_0, param)
+
+    print(f"Funzione:        {name}")
+    print(f"Punto di minimo: {m}")
+    print(f"Punto iniziale:  {x_0}")
+    print(f"Minimo trovato:  {x_m}")
+    print()
+
 def main() -> None:
     ## I parametri possono essere anche impostati dal file parameters.json
 
@@ -105,45 +119,11 @@ def main() -> None:
         epsilon = float64(1) 
     )
 
-    f = tf.sphere
-    x_0    = np.array( [3, -1, 2], dtype = float64)
-    step_0 = np.array( [1]*(x_0.size), dtype = float64) # Passo iniziale unitario
-    x = SDFL(f, x_0, step_0, param)
-    print("Funzione: Sphere")
-    print("Punto di minimo: 0")
-    print(f"Punto iniziale: {x_0}")
-    print(f"Minimo trovato: {x}")
-    print()
+    x_0 : list[float] = [3, -1, 2]
+    test("Sphere", tf.sphere, [0]*len(x_0), x_0, [1]*len(x_0), param)
 
-    f = tf.rosenbrock
-    x_0    = np.array( [-9, 4], dtype = float64)
-    step_0 = np.array( [1]*(x_0.size), dtype = float64)
-    x = SDFL(f, x_0, step_0, param)
-    print("Funzione: Rosenbrock")
-    print("Punto di minimo: 1")
-    print(f"Punto iniziale: {x_0}")
-    print(f"Minimo trovato: {x}")
-    print()
-
-    f = tf.rastrigin
-    x_0    = np.array( [5, -2.5, 2], dtype = float64)
-    step_0 = np.array( [1]*(x_0.size), dtype = float64)
-    x = SDFL(f, x_0, step_0, param)
-    print("Funzione: Rastrigin")
-    print("Punto di minimo: 0")
-    print(f"Punto iniziale: {x_0}")
-    print(f"Minimo trovato: {x}")
-    print()
-
-    f = tf.ackley
-    x_0    = np.array( [-4, 1], dtype = float64)
-    step_0 = np.array( [1]*(x_0.size), dtype = float64)
-    x = SDFL(f, x_0, step_0, param)
-    print("Funzione: Ackley")
-    print("Punto di minimo: 0")
-    print(f"Punto iniziale: {x_0}")
-    print(f"Minimo trovato: {x}")
-    print()
+    x_0 = [-9, -4]
+    test("Rosenbrock", tf.rosenbrock, [1]*len(x_0), x_0, [1]*len(x_0), param)
 
 if __name__ == "__main__":
     main()
