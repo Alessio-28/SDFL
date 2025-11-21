@@ -1,47 +1,58 @@
-from dataclasses import dataclass
+import json
+from typing import Callable
+
+import test_functions as tf
+
 import numpy as np
-import numpy.typing as npt
+from numpy import float64
+from numpy.typing import NDArray
 
-@dataclass
 class Parameters:
-    theta   : np.float64
-    gamma   : np.float64
-    c       : np.float64
-    eta     : np.float64
-    epsilon : np.float64
+    theta   : float64
+    gamma   : float64
+    c       : float64
+    eta     : float64
+    epsilon : float64
 
-def bound(param : Parameters, step : np.float64) -> np.float64:
-    return -param.gamma * param.c * param.epsilon * (step ** 2)
+    def __init__(self : Parameters, theta : float64, gamma : float64, c : float64, eta : float64, epsilon : float64, ) -> None:
+       self.theta   = theta
+       self.gamma   = gamma
+       self.c       = c
+       self.eta     = eta
+       self.epsilon = epsilon
 
-# Placeholder
-def F(x : npt.NDArray[np.float64]) -> np.float64:
-    return np.sum(x**2)
+    def bound(self : Parameters, param : Parameters, step : float64) -> float64:
+        return -param.gamma * param.c * param.epsilon * (step ** 2)
 
-def SDFL(x_0 : npt.NDArray[np.float64], step_0 : npt.NDArray[np.float64], param : Parameters) -> npt.NDArray[np.float64]:
+#########################################################################################
+
+
+def SDFL(F : Callable[[NDArray[float64]], float64], x_0 : NDArray[float64], step_0 : NDArray[float64], param : Parameters) -> NDArray[float64]:
+    LIMIT : float64 = float64(1e-6)
     nF : int = 0
     n  : int = x_0.size
     success : bool = True
-    base : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64) # Usato per i vettori della base canonica
 
-    step      : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64) # \alpha_k^i
-    init_step : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64) # \bar{\alpha}_k^i
-    next_step : npt.NDArray[np.float64]                                   # \tilde{\alpha}_k^i
+    base      : NDArray[float64] = np.zeros(n, dtype = float64) # Usato per i vettori della base canonica
+    step      : NDArray[float64] = np.zeros(n, dtype = float64) # \alpha_k^i
+    init_step : NDArray[float64] = np.zeros(n, dtype = float64) # \bar{\alpha}_k^i
+    next_step : NDArray[float64] = step_0.copy()                # \tilde{\alpha}_k^i
 
-    x : npt.NDArray[np.float64] = x_0.copy()
-    y : npt.NDArray[np.float64]
-    while nF < n: # Placeholder
+    max_next_step : float64 = np.max(next_step)
+    x : NDArray[float64] = x_0.copy()
+    y : NDArray[float64]
+    while max_next_step > LIMIT:
         y = x.copy()
-        next_step = step_0.copy()
-        max_next_step : np.float64 = param.eta * np.max(next_step)
+        max_next_step = param.eta * max_next_step
 
         for i in range(n):
             success = True
             base[i] = 1
             init_step[i] = np.max((next_step[i], max_next_step))
 
-            temp : np.float64 = bound(param, init_step[i])
+            temp : float64 = param.bound(param, init_step[i])
             nF += 2
-            F_y : np.float64 = F(y)
+            F_y : float64 = F(y)
             if F(y + init_step * base) - F_y > temp:
                 nF += 1
                 if F(y - init_step * base) - F_y > temp:
@@ -51,13 +62,13 @@ def SDFL(x_0 : npt.NDArray[np.float64], step_0 : npt.NDArray[np.float64], param 
                     base[i] = -1
 
             if success:
-                a : np.float64 = init_step[i]
-                b : np.float64 = init_step[i] * 2
-                nF += 1
-                while F(y + b * base) - F(y + a * base) <= bound(param, b - a):
+                a : float64 = init_step[i]
+                b : float64 = init_step[i] * 2
+                nF += 1 # Dovrebbe essere nF += 2 ?
+                while F(y + b * base) - F(y + a * base) <= param.bound(param, b - a):
                     a = b
                     b = a * 2
-                    nF += 1
+                    nF += 1 # Dovrebbe essere nF += 2 ?
                 step[i] = a
                 y += a * base
             base[i] = 0
@@ -68,4 +79,71 @@ def SDFL(x_0 : npt.NDArray[np.float64], step_0 : npt.NDArray[np.float64], param 
             x = y.copy()
             next_step = np.maximum(step, init_step)
 
+        max_next_step = np.max(next_step)
+
     return x
+
+def main() -> None:
+    ## I parametri possono essere anche impostati dal file parameters.json
+
+    # with open("parameters.json") as p:
+    #     data = json.load(p)
+    #
+    # param : Parameters = Parameters(
+    #     theta   = data["theta"],
+    #     gamma   = data["gamma"],
+    #     c       = data["c"],
+    #     eta     = data["eta"],
+    #     epsilon = data["epsilon"]
+    # )
+
+    param : Parameters = Parameters(
+        theta   = float64(0.5),
+        gamma   = float64(2.5),
+        c       = float64(1),
+        eta     = float64(1),
+        epsilon = float64(1) 
+    )
+
+    f = tf.sphere
+    x_0    = np.array( [3, -1, 2], dtype = float64)
+    step_0 = np.array( [1]*x_0.size, dtype = float64) # Passo iniziale unitario
+    x = SDFL(f, x_0, step_0, param)
+    print("Funzione: Sphere")
+    print("Punto di minimo: 0")
+    print(f"Punto iniziale: {x_0}")
+    print(f"Minimo trovato: {x}")
+    print()
+
+    f = tf.rosenbrock
+    x_0    = np.array( [-9, 4], dtype = float64)
+    step_0 = np.array( [1]*x_0.size, dtype = float64)
+    x = SDFL(f, x_0, step_0, param)
+    print("Funzione: Rosenbrock")
+    print("Punto di minimo: 1")
+    print(f"Punto iniziale: {x_0}")
+    print(f"Minimo trovato: {x}")
+    print()
+
+    f = tf.rastrigin
+    x_0    = np.array( [5, -2.5, 2], dtype = float64)
+    step_0 = np.array( [1]*x_0.size, dtype = float64)
+    x = SDFL(f, x_0, step_0, param)
+    print("Funzione: Rastrigin")
+    print("Punto di minimo: 0")
+    print(f"Punto iniziale: {x_0}")
+    print(f"Minimo trovato: {x}")
+    print()
+
+    f = tf.ackley
+    x_0    = np.array( [-4, 1], dtype = float64)
+    step_0 = np.array( [1]*x_0.size, dtype = float64)
+    x = SDFL(f, x_0, step_0, param)
+    print("Funzione: Ackley")
+    print("Punto di minimo: 0")
+    print(f"Punto iniziale: {x_0}")
+    print(f"Minimo trovato: {x}")
+    print()
+
+if __name__ == "__main__":
+    main()
