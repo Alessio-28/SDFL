@@ -107,7 +107,7 @@ def main() -> None:
 
     f = tf.sphere
     x_0    = np.array( [3, -1, 2], dtype = float64)
-    step_0 = np.array( [1]*x_0.size, dtype = float64) # Passo iniziale unitario
+    step_0 = np.array( [1]*(x_0.size), dtype = float64) # Passo iniziale unitario
     x = SDFL(f, x_0, step_0, param)
     print("Funzione: Sphere")
     print("Punto di minimo: 0")
@@ -117,7 +117,7 @@ def main() -> None:
 
     f = tf.rosenbrock
     x_0    = np.array( [-9, 4], dtype = float64)
-    step_0 = np.array( [1]*x_0.size, dtype = float64)
+    step_0 = np.array( [1]*(x_0.size), dtype = float64)
     x = SDFL(f, x_0, step_0, param)
     print("Funzione: Rosenbrock")
     print("Punto di minimo: 1")
@@ -127,7 +127,7 @@ def main() -> None:
 
     f = tf.rastrigin
     x_0    = np.array( [5, -2.5, 2], dtype = float64)
-    step_0 = np.array( [1]*x_0.size, dtype = float64)
+    step_0 = np.array( [1]*(x_0.size), dtype = float64)
     x = SDFL(f, x_0, step_0, param)
     print("Funzione: Rastrigin")
     print("Punto di minimo: 0")
@@ -137,7 +137,7 @@ def main() -> None:
 
     f = tf.ackley
     x_0    = np.array( [-4, 1], dtype = float64)
-    step_0 = np.array( [1]*x_0.size, dtype = float64)
+    step_0 = np.array( [1]*(x_0.size), dtype = float64)
     x = SDFL(f, x_0, step_0, param)
     print("Funzione: Ackley")
     print("Punto di minimo: 0")
