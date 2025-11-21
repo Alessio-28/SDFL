@@ -8,7 +8,7 @@ import test_functions as tf
 
 import json
 
-def test(name : str, f : Callable[[NDArray[float64]], float64], minimum : list[float], x : list[float], step : list[float], param : Parameters) -> None:
+def test(name : str, f : Callable[[NDArray[float64]], float64], minimum : list[float], x : list[float], step : list[float], param : SDFL.Parameters) -> None:
     m      = np.array( minimum, dtype = float64)
     x_0    = np.array( x, dtype = float64)
     step_0 = np.array( step, dtype = float64) # Passo iniziale unitario
