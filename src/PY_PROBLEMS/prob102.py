@@ -16,20 +16,22 @@ Created on Fri Oct 16 17:38:11 2020
 """
 
 import numpy as np
+import numpy.typing as npt
 
-name      = 'SO-I prob. 2'
+name      : str = "SO-I prob. 2"
 #devono essere continue le prime 3
-n      = 5
-nint   = 2
-ncont  = n-nint
-lb     = -100.0*np.ones(n)
-ub     =  100.0*np.ones(n)
-lbmix  = -100.0*np.ones(n)
-ubmix  =  100.0*np.ones(n)
-startp =   50.0*np.ones(n) 
-x_initial =50.0*np.ones(n) 
-xmix   = np.zeros(n)
+n         : int = 5
+nint      : int = 2
+ncont     : int = n - nint
+lb        : npt.NDArray[np.float64] = -100 * np.ones(n, dtype = np.float64)
+ub        : npt.NDArray[np.float64] =  100 * np.ones(n, dtype = np.float64)
+lbmix     : npt.NDArray[np.float64] = -100 * np.ones(n, dtype = np.float64)
+ubmix     : npt.NDArray[np.float64] =  100 * np.ones(n, dtype = np.float64)
+startp    : npt.NDArray[np.float64] =   50 * np.ones(n, dtype = np.float64) 
+x_initial : npt.NDArray[np.float64] =   50 * np.ones(n, dtype = np.float64) 
+xmix      : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64)
 
-def feval(x):  #*x[0] *x[1] *x[2] x[3] x[4]
-    f = x[3]*np.sin(x[3]) + 1.7*x[4]*np.sin(x[3]) - 1.5*x[0] - 0.1*x[1]*np.cos(x[1] + x[2] - x[3]) + 0.2*x[2]**2 - x[4] -1.0
+def feval(x : npt.NDArray[np.float64]) -> np.float64:
+    f = x[3] * np.sin(x[3]) + 1.7 * x[4] * np.sin(x[3]) - 1.5 * x[0] - 0.1 * x[1] * np.cos(x[1] + x[2] - x[3]) + 0.2 * x[2] ** 2 - x[4] -1
     return f
+

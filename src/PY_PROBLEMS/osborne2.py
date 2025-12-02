@@ -6,90 +6,94 @@ Created on Fri Oct 16 17:38:11 2020
 """
 
 import numpy as np
+import numpy.typing as npt
 
-name      = 'osborne2'
-startp = np.array([1.3, 0.65, 0.65, 0.7, 0.6, 3.0, 5.0, 7.0, 2.0, 4.5, 5.5])
-lb     = startp - 10.0
-ub     = startp + 10.0
-n      = len(lb)
-nint   = 5
-ncont  = n-nint
-lbmix  = np.zeros(n); lbmix[:ncont] = lb[:ncont]
-ubmix  = 100*np.ones(n); ubmix[:ncont] = ub[:ncont]
-x_initial = 50*np.ones(n); x_initial[:ncont] = (ub[:ncont] + lb[:ncont])/2 
-xmix   = np.zeros(n)
+name      : str = "osborne2"
+startp    : npt.NDArray[np.float64] = np.array([1.3, 0.65, 0.65, 0.7, 0.6, 3, 5, 7, 2, 4.5, 5.5], dtype = np.float64)
+lb        : npt.NDArray[np.float64] = startp - 10
+ub        : npt.NDArray[np.float64] = startp + 10
+n         : int = len(lb)
+nint      : int = 5
+ncont     : int = n - nint
+lbmix     : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64);      lbmix[:ncont]     = lb[:ncont]
+ubmix     : npt.NDArray[np.float64] = 100 * np.ones(n, dtype = np.float64); ubmix[:ncont]     = ub[:ncont]
+x_initial : npt.NDArray[np.float64] =  50 * np.ones(n, dtype = np.float64); x_initial[:ncont] = (ub[:ncont] + lb[:ncont]) / 2 
+xmix      : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64)
 
-def feval(x):
-    y = [
-     [1.366],
-     [1.191],
-     [1.112],
-     [1.013],
-     [0.991],
-     [0.885],
-     [0.831],
-     [0.847],
-     [0.786],
-     [0.725],
-     [0.746],
-     [0.679],
-     [0.608],
-     [0.655],
-     [0.616],
-     [0.606],
-     [0.602],
-     [0.626],
-     [0.651],
-     [0.724],
-     [0.649],
-     [0.649],
-     [0.694],
-     [0.644],
-     [0.624],
-     [0.661],
-     [0.612],
-     [0.558],
-     [0.553],
-     [0.495],
-     [0.500],
-     [0.423],
-     [0.395],
-     [0.375],
-     [0.372],
-     [0.391],
-     [0.396],
-     [0.405],
-     [0.428],
-     [0.429],
-     [0.523],
-     [0.562],
-     [0.607],
-     [0.653],
-     [0.672],
-     [0.708],
-     [0.633],
-     [0.668],
-     [0.645],
-     [0.632],
-     [0.591],
-     [0.559],
-     [0.597],
-     [0.625],
-     [0.739],
-     [0.710],
-     [0.729],
-     [0.720],
-     [0.636],
-     [0.581],
-     [0.428],
-     [0.292],
-     [0.162],
-     [0.098],
-     [0.054]]
+def feval(x : npt.NDArray[np.float64]) -> np.float64:
+    y : npt.NDArray[np.float64] = np.array(
+        [
+            [1.366],
+            [1.191],
+            [1.112],
+            [1.013],
+            [0.991],
+            [0.885],
+            [0.831],
+            [0.847],
+            [0.786],
+            [0.725],
+            [0.746],
+            [0.679],
+            [0.608],
+            [0.655],
+            [0.616],
+            [0.606],
+            [0.602],
+            [0.626],
+            [0.651],
+            [0.724],
+            [0.649],
+            [0.649],
+            [0.694],
+            [0.644],
+            [0.624],
+            [0.661],
+            [0.612],
+            [0.558],
+            [0.553],
+            [0.495],
+            [0.500],
+            [0.423],
+            [0.395],
+            [0.375],
+            [0.372],
+            [0.391],
+            [0.396],
+            [0.405],
+            [0.428],
+            [0.429],
+            [0.523],
+            [0.562],
+            [0.607],
+            [0.653],
+            [0.672],
+            [0.708],
+            [0.633],
+            [0.668],
+            [0.645],
+            [0.632],
+            [0.591],
+            [0.559],
+            [0.597],
+            [0.625],
+            [0.739],
+            [0.710],
+            [0.729],
+            [0.720],
+            [0.636],
+            [0.581],
+            [0.428],
+            [0.292],
+            [0.162],
+            [0.098],
+            [0.054]
+        ],
+        dtype = np.float64
+    )
 
-    t = 0.1*np.arange(0,65).reshape(65,-1)
+    t = 0.1 * np.arange(0, 65, dtype = np.float64).reshape(65, -1)
 
-    f = y - x[0]*np.exp(-x[4]*t) - x[1]*np.exp(-x[5]*(t-x[8])**2) - x[2]*np.exp(-x[6]*(t-x[9])**2) - x[3]*np.exp(-x[7]*(t-x[10])**2)
+    f = y - x[0] * np.exp(-x[4] * t) - x[1] * np.exp(-x[5] * (t - x[8]) ** 2) - x[2] * np.exp(-x[6] * (t - x[9]) ** 2) - x[3] * np.exp(-x[7] * (t - x[10]) ** 2)
     
-    y = np.max(np.abs(f))
-    return y
+    return np.max(np.abs(f))

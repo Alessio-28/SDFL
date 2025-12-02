@@ -6,24 +6,25 @@ Created on Fri Oct 16 17:38:11 2020
 """
 
 import numpy as np
+import numpy.typing as npt
 
-name      = 'l1hilb'
-startp = np.ones(50)
-lb     = startp - 10.0
-ub     = startp + 10.0
-n      = len(lb)
-nint   = 25
-ncont  = n-nint
-lbmix  = np.zeros(n); lbmix[:ncont] = lb[:ncont]
-ubmix  = 100*np.ones(n); ubmix[:ncont] = ub[:ncont]
-x_initial = 50*np.ones(n); x_initial[:ncont] = (ub[:ncont] + lb[:ncont])/2 
-xmix   = np.zeros(n)
+name      : str = "l1hilb"
+startp    : npt.NDArray[np.float64] = np.ones(50, dtype = np.float64)
+lb        : npt.NDArray[np.float64] = startp - 10
+ub        : npt.NDArray[np.float64] = startp + 10
+n         : int = len(lb)
+nint      : int = 25
+ncont     : int = n - nint
+lbmix     : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64);      lbmix[:ncont]     = lb[:ncont]
+ubmix     : npt.NDArray[np.float64] = 100 * np.ones(n, dtype = np.float64); ubmix[:ncont]     = ub[:ncont]
+x_initial : npt.NDArray[np.float64] =  50 * np.ones(n, dtype = np.float64); x_initial[:ncont] = (ub[:ncont] + lb[:ncont]) / 2 
+xmix      : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64)
 
-def feval(x):
-    i = np.arange(1,51)
-    j = np.arange(1,51)
-    I = np.tile(i,(50,1));
-    J = np.tile(j.reshape(-1,1),(1,50));
-    X = np.tile(x.reshape(-1,1),(1,50));
-    y = np.sum(np.abs(np.sum(X/(I+J-1))))
+def feval(x : npt.NDArray[np.float64]) -> np.float64:
+    i : npt.NDArray[np.float64] = np.arange(1, 51, dtype = np.float64)
+    j : npt.NDArray[np.float64] = np.arange(1, 51, dtype = np.float64)
+    I = np.tile(i, (50, 1))
+    J = np.tile(j.reshape(-1, 1), (1, 50))
+    X = np.tile(x.reshape(-1, 1), (1, 50))
+    y : np.float64 = np.sum(np.abs(np.sum(X / (I + J - 1))))
     return y

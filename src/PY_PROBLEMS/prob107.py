@@ -16,20 +16,22 @@ Created on Fri Oct 16 17:38:11 2020
 """
 
 import numpy as np
+import numpy.typing as npt
 
-name      = 'SO-I prob. 7'
-n      = 10
-nint   = 5
-ncont  = n-nint
-lb     = 3.0*np.ones(n)
-ub     = 9.0*np.ones(n)
-lbmix  = 3.0*np.ones(n)
-ubmix  = 9.0*np.ones(n)
-startp =   6.0*np.ones(n) 
-x_initial =6.0*np.ones(n) 
-xmix   = np.zeros(n)
+name      : str = "SO-I prob. 7"
+n         : int = 10
+nint      : int = 5
+ncont     : int = n-nint
+lb        : npt.NDArray[np.float64] = 3 * np.ones(n, dtype = np.float64)
+ub        : npt.NDArray[np.float64] = 9 * np.ones(n, dtype = np.float64)
+lbmix     : npt.NDArray[np.float64] = 3 * np.ones(n, dtype = np.float64)
+ubmix     : npt.NDArray[np.float64] = 9 * np.ones(n, dtype = np.float64)
+startp    : npt.NDArray[np.float64] = 6 * np.ones(n, dtype = np.float64)
+x_initial : npt.NDArray[np.float64] = 6 * np.ones(n, dtype = np.float64)
+xmix      : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64)
 
-def feval(x):  #*x[0] *x[1] *x[2] x[3] x[4]
-    f = np.sum(np.log(x-2)**2) + np.sum(np.log(10-x)**2) - np.prod(x**0.2)
+def feval(x : npt.NDArray[np.float64]) -> np.float64:
+    f = np.sum(np.log(x - 2) ** 2) + np.sum(np.log(10 - x) ** 2) - np.prod(x ** 0.2)
     return f
+
 

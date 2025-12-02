@@ -6,44 +6,56 @@ Created on Fri Oct 16 17:38:11 2020
 """
 
 import numpy as np
+import numpy.typing as npt
 
-name      = 'colville 1'
-startp = np.array([0.0,0.0,0.0,0.0,1.0])
-lb     = startp - 10.0
-ub     = startp + 10.0
-n      = len(lb)
-nint   = 2
-ncont  = n-nint
-lbmix  = np.zeros(n); lbmix[:ncont] = lb[:ncont]
-ubmix  = 100*np.ones(n); ubmix[:ncont] = ub[:ncont]
-x_initial = 50*np.ones(n); x_initial[:ncont] = (ub[:ncont] + lb[:ncont])/2 
-xmix   = np.zeros(n)
+name      : str = "colville 1"
+startp    : npt.NDArray[np.float64] = np.array([0, 0, 0, 0, 1], dtype = np.float64)
+lb        : npt.NDArray[np.float64] = startp - 10
+ub        : npt.NDArray[np.float64] = startp + 10
+n         : int = len(lb)
+nint      : int = 2
+ncont     : int = n - nint
+lbmix     : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64);      lbmix[:ncont]     = lb[:ncont]
+ubmix     : npt.NDArray[np.float64] = 100 * np.ones(n, dtype = np.float64); ubmix[:ncont]     = ub[:ncont]
+x_initial : npt.NDArray[np.float64] =  50 * np.ones(n, dtype = np.float64); x_initial[:ncont] = (ub[:ncont] + lb[:ncont]) / 2
+xmix      : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64)
 
-def feval(x):
-    x = x.reshape(-1,1)
-    A = np.array([[-16.0,2.0 ,0.0,1.0,0.0],
-       [0.0,-2.0,0.0,4.0,2.0],
-       [-3.5,0.0,2.0,0.0,0.0],
-       [0.0,-2.0,0.0,-4.0,-1.0],
-       [0.0,-9.0,-2.0,1.0,-2.8],
-       [2.0,0.0,-4.0,0.0,0.0],
-       [-1.0,-1.0,-1.0,-1.0,-1.0],
-       [-1.0,-2.0,-3.0,-2.0,-1.0],
-       [1.0,2.0,3.0,4.0,5.0],
-       [1.0,1.0,1.0,1.0,1.0]])
+def feval(x : npt.NDArray[np.float64]) -> np.float64:
+    x = x.reshape(-1, 1)
+    A : npt.NDArray[np.float64] = np.array(
+        [
+            [ -16,  2,  0,  1,   0],
+            [   0, -2,  0,  4,   2],
+            [-3.5,  0,  2,  0,   0],
+            [   0, -2,  0, -4,  -1],
+            [   0, -9, -2,  1,-2.8],
+            [   2,  0, -4,  0,   0],
+            [  -1, -1, -1, -1,  -1],
+            [  -1, -2, -3, -2,  -1],
+            [   1,  2,  3,  4,   5],
+            [   1,  1,  1,  1,   1]
+        ],
+        dtype = np.float64
+    )
  
-    b = np.array([[-40.0],[-2.0],[-0.25],[-4.0],[-4.0],[-1.0],[-40.0],[-60.0],[5.0],[1.0]])
+    b : npt.NDArray[np.float64] = np.array([ [-40], [-2], [-0.25], [-4], [-4], [-1], [-40], [-60], [5], [1] ], dtype = np.float64
+    )
 
-    C = np.array([[30.0,-20.0,-10.0,32.0,-10.0],
-     [-20.0,39.0,-6.0,-31.0,32.0],
-     [-10.0,-6.0,10.0,-6.0,-10.0],
-     [32.0,-31.0,-6.0,39.0,-20.0],
-     [-10.0,32.0,-10.0,-20.0,30.0]])
+    C : npt.NDArray[np.float64] = np.array(
+        [
+            [  30, -20, -10,  32, -10],
+            [ -20,  39,  -6, -31,  32],
+            [ -10,  -6,  10,  -6, -10],
+            [  32, -31,  -6,  39, -20],
+            [ -10,  32, -10, -20,  30]
+        ],
+        dtype = np.float64
+    )
  
-    d = np.array([[4.0],[8.0],[10.0],[6.0],[2.0]])
+    d : npt.NDArray[np.float64] = np.array([ [4], [8], [10], [6], [2] ], dtype = np.float64)
 
-    ee = np.array([[-15.0,-27.0,-36.0,-18.0,-12.0]])
+    ee : npt.NDArray[np.float64] = np.array([ [-15, -27, -36, -18, -12] ], dtype = np.float64)
 
-    y = np.sum(d*x**3) + np.sum(np.sum(C*(x*x))) + np.matmul(ee,x) + 50.0*np.maximum(0.0,np.max(b - np.matmul(A,x)))
+    y : npt.NDArray[np.float64] = np.sum(d * x ** 3) + np.sum(np.sum(C * (x * x))) + np.matmul(ee, x) + 50 * np.maximum(0, np.max(b - np.matmul(A, x)))
     
     return y[0][0]

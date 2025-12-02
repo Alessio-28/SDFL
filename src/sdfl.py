@@ -5,9 +5,27 @@ from typing import Callable, TypeAlias, Tuple
 from enum import Enum
 from dataclasses import dataclass
 
-ObjectiveFunction : TypeAlias = Callable[[ NDArray[float64] ], float64]
+#####################################################################
+#####################################################################
+# import logging
+# sdfl_log : logging.Logger = logging.getLogger(name = __name__)
+# dir_log  : logging.Logger = logging.getLogger(name = f"{sdfl_log.name}.direction")
+# line_log : logging.Logger = logging.getLogger(name = f"{sdfl_log.name}.line")
+# fh : logging.FileHandler  = logging.FileHandler("sdfl.log")
+# logging.basicConfig(
+#     filename = "sdfl.log",
+#     level = logging.DEBUG,
+#     filemode = "w",
+#     # format = "%(asctime)s - %(name)s - %(levelname)s: %(message)s"
+# )
+# sdfl_log.addHandler(fh)
+# dir_log.addHandler(fh)
+# line_log.addHandler(fh)
+#####################################################################
+#####################################################################
+
 Point     : TypeAlias = NDArray[float64]
-StepSizes : TypeAlias = NDArray[float64]
+ObjectiveFunction : TypeAlias = Callable[[Point], float64]
 
 @dataclass(frozen = True)
 class Parameters:
@@ -48,22 +66,21 @@ def __compute_bound(coeff : float64, step_size : float64) -> float64:
     return coeff * step_size * step_size
 
 def __compute_direction(F : ObjectiveFunction, y : Point, F_y : float64, step_size : float64, index : int, bound_coeff : float64) -> Tuple[__DirectionResult, float64]:
-    y_i : float64 = y[index]
     F_bound : float64 = F_y + __compute_bound(bound_coeff, step_size)
 
     y[index] += step_size
     F_dir : float64 = F(y)
     if F_dir > F_bound:
-        y[index] = y_i - step_size
+        y[index] -= 2 * step_size
         F_dir = F(y)
 
-        y[index] = y_i
+        y[index] += step_size
         if F_dir > F_bound:
             return (__DirectionResult.FAILURE, F_dir)
         else:
             return (__DirectionResult.NEGATIVE, F_dir)
 
-    y[index] = y_i
+    y[index] -= step_size
     return (__DirectionResult.POSITIVE, F_dir)
 
 def __line_search(F : ObjectiveFunction, y : Point, F_dir : float64, direction_sign : int, step_size : float64, index : int, bound_coeff : float64) -> float64:
@@ -75,18 +92,30 @@ def __line_search(F : ObjectiveFunction, y : Point, F_dir : float64, direction_s
     y[index] += 2 * step
     F_b : float64 = F(y)
     while F_b - F_a <= bound * (iter2 * iter2):
-        iter2 *= 2                  # step *= 2
-        y[index] += iter2 * step    # y[index] = y_i + 2 * step * direction
+        iter2 *= 2
+        y[index] += iter2 * step
 
-        F_a = F_b
-        F_b = F(y)
+        F_a, F_b = F_b, F(y)
+############# Logging ##########################
+    # line_log.debug(f"y_i: {y[index]}, iter2: {iter2}, Step: {step_size}")
+################################################
 
-    y[index] -= step * iter2          # y[index] = y_i + step * direction
+    y[index] -= step * iter2
+
+############# Logging ##########################
+    # line_log.debug(f"y_i: {y[index]}, Step size: {step_size * iter2}")
+################################################
+
     return step_size * iter2
 
+def SDFL(obj_func : ObjectiveFunction, starting_point : Point, starting_step : NDArray[float64], param : Parameters) -> Point:
 
-def SDFL(obj_func : ObjectiveFunction, starting_point : Point, starting_step : StepSizes, param : Parameters) -> Point:
-    LIMIT : float64 = float64(1e-6)
+############# Logging ##########################
+    # sdfl_log.debug("SDFL: Start")
+    # log_counter : int = 0
+################################################
+
+    LIMIT : float64 = float64(1e-8)
     direction_sign : int = 0
     n : int = starting_point.size
 
@@ -94,9 +123,9 @@ def SDFL(obj_func : ObjectiveFunction, starting_point : Point, starting_step : S
     F : ObjectiveFunction = f_wrapper.eval
 
     # Creare una classe?
-    accepted_step  : StepSizes = np.zeros(n, dtype = float64) # \alpha_k^i
-    init_step      : StepSizes = np.zeros(n, dtype = float64) # \bar{\alpha}_k^i
-    tentative_step : StepSizes = starting_step.copy()         # \tilde{\alpha}_k^i
+    accepted_step  : NDArray[float64] = np.zeros(n, dtype = float64) # \alpha_k^i
+    init_step      : NDArray[float64] = np.zeros(n, dtype = float64) # \bar{\alpha}_k^i
+    tentative_step : NDArray[float64] = starting_step.copy()         # \tilde{\alpha}_k^i
     max_tentative_step : float64 = np.max(tentative_step)
 
     bound_coeff : float64 = __compute_bound_coeff(param)
@@ -107,12 +136,16 @@ def SDFL(obj_func : ObjectiveFunction, starting_point : Point, starting_step : S
     x : Point = starting_point.copy()
     y : Point = starting_point.copy()
 
+    prev_dir_res : __DirectionResult = __DirectionResult.POSITIVE
     while max_tentative_step > LIMIT:
         new_point_found : bool = False
-        prev_dir_res : __DirectionResult = __DirectionResult.POSITIVE
         np.maximum(tentative_step, eta * max_tentative_step, out = init_step)
 
         for i in range(n):
+
+############# Logging ##########################
+            # sdfl_log.debug(f"Pre:  Iter: [{log_counter}|{i}], y: {y[:]}, direction: {prev_dir_res.name}, F_y: {F_y}")
+################################################
 
             if prev_dir_res != __DirectionResult.FAILURE:
                 F_y = F(y)
@@ -127,6 +160,13 @@ def SDFL(obj_func : ObjectiveFunction, starting_point : Point, starting_step : S
                 direction_sign = dir_res.value
                 accepted_step[i] = __line_search(F, y, F_dir, direction_sign, init_step[i], i, bound_coeff)
                 new_point_found = True
+            prev_dir_res = dir_res
+
+############# Logging ##########################
+        #     sdfl_log.debug(f"Post: Iter: [{log_counter}|{i}], y: {y[:]}, step: {accepted_step[i]}, direction: {dir_res.name}, F_y: {F_y}, F_dir: {F_dir}")
+        # sdfl_log.debug(f"New point found: {new_point_found}")
+        # log_counter += 1
+################################################
 
         if new_point_found:
             x[:] = y
@@ -134,5 +174,9 @@ def SDFL(obj_func : ObjectiveFunction, starting_point : Point, starting_step : S
         else:
             tentative_step = theta * init_step
         max_tentative_step = np.max(tentative_step)
+
+############# Logging ##########################
+    # sdfl_log.debug("SDFL: End")
+################################################
 
     return x

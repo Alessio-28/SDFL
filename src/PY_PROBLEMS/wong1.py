@@ -6,26 +6,28 @@ Created on Fri Oct 16 17:38:11 2020
 """
 
 import numpy as np
+import numpy.typing as npt
 
-name      = 'wong1'
-startp = np.array([1.0,2.0,0.0,4.0,0.0,1.0,1.0])
-lb     = startp - 10.0
-ub     = startp + 10.0
-n      = len(lb)
-nint   = 3
-ncont  = n-nint
-lbmix  = np.zeros(n); lbmix[:ncont] = lb[:ncont]
-ubmix  = 100*np.ones(n); ubmix[:ncont] = ub[:ncont]
-x_initial = 50*np.ones(n); x_initial[:ncont] = (ub[:ncont] + lb[:ncont])/2 
-xmix   = np.zeros(n)
+name      : str = "wong1"
+startp    : npt.NDArray[np.float64] = np.array([1, 2, 0, 4, 0, 1, 1], dtype = np.float64)
+lb        : npt.NDArray[np.float64] = startp - 10
+ub        : npt.NDArray[np.float64] = startp + 10
+n         : int = len(lb)
+nint      : int = 3
+ncont     : int = n - nint
+lbmix     : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64);      lbmix[:ncont]     = lb[:ncont]
+ubmix     : npt.NDArray[np.float64] = 100 * np.ones(n, dtype = np.float64); ubmix[:ncont]     = ub[:ncont]
+x_initial : npt.NDArray[np.float64] =  50 * np.ones(n, dtype = np.float64); x_initial[:ncont] = (ub[:ncont] + lb[:ncont]) / 2 
+xmix      : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64)
 
-def feval(x):
-    x = x.reshape(-1,1)
-    f = np.zeros(5)
-    f[0] = (x[0]-10.0)**2 +5.0*(x[1]-12.0)**2 + x[2]**4 + 3.0*(x[3]-11.0)**2 + 10.0*x[4]**6+ 7.0*x[5]**2 + x[6]**4 - 4.0*x[5]*x[6] - 10.0*x[5] - 8.0*x[6]
-    f[1] = f[0] + 10.0*(2.0*x[0]**2 + 3.0*x[1]**4 + x[2] + 4.0*x[3]**2 + 5.0*x[4] -127.0)
-    f[2] = f[0] + 10.0*(7.0*x[0] + 3.0*x[1] + 10.0*x[2]**2 + x[3] - x[4] - 282.0)
-    f[3] = f[0] + 10.0*(23.0*x[0] + x[1]**2 + 6.0*x[5]**2 - 8.0*x[6] -196.0)
-    f[4] = f[0] + 10.0*(4.0*x[0]**2 + x[1]**2 - 3.0*x[0]*x[1] + 2.0*x[2]**2 + 5.0*x[5] - 11.0*x[6])
+def feval(x : npt.NDArray[np.float64]) -> np.float64:
+    x = x.reshape(-1, 1)
+    f = np.zeros(5, dtype = np.float64)
+    f[0] = (x[0] - 10) ** 2 + 5 * (x[1] - 12) ** 2 + x[2] ** 4 + 3 * (x[3] - 11) ** 2 + 10 * x[4] ** 6 + 7 * x[5] ** 2 + x[6] ** 4 - 4 * x[5] * x[6] - 10 * x[5] - 8 * x[6]
+    f[1] = f[0] + 10 * ( 2 * x[0] ** 2 + 3 * x[1] ** 4 + x[2] + 4 * x[3] ** 2 + 5 * x[4] - 127)
+    f[2] = f[0] + 10 * ( 7 * x[0] + 3 * x[1] + 10 * x[2] ** 2 + x[3] - x[4] - 282)
+    f[3] = f[0] + 10 * (23 * x[0] + x[1] ** 2 + 6 * x[5] ** 2 - 8 * x[6] - 196)
+    f[4] = f[0] + 10 * ( 4 * x[0] ** 2 + x[1] ** 2 - 3 * x[0] * x[1] + 2 * x[2] ** 2 + 5 * x[5] - 11 * x[6])
     y = np.max(f)
     return y
+

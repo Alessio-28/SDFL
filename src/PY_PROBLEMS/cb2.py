@@ -6,21 +6,22 @@ Created on Fri Oct 16 17:38:11 2020
 """
 
 import numpy as np
+import numpy.typing as npt
 
-name      = 'cb2'
-n      = 2
-startp = np.array([2.0, 2.0])
-lb     = startp - 10.0
-ub     = startp + 10.0
-nint   = 2
-ncont  = n-nint
-lbmix  = np.zeros(n)
-ubmix  = 100.0*np.ones(n)
-x_initial = 50*np.ones(n) 
-xmix   = np.zeros(n)
+name      : str = "cb2"
+n         : int = 2
+startp    : npt.NDArray[np.float64] = np.array([2, 2], dtype = np.float64)
+lb        : npt.NDArray[np.float64] = startp - 10
+ub        : npt.NDArray[np.float64] = startp + 10
+nint      : int = 2
+ncont     : int = n - nint
+lbmix     : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64)
+ubmix     : npt.NDArray[np.float64] = 100 * np.ones(n, dtype = np.float64)
+x_initial : npt.NDArray[np.float64] =  50 * np.ones(n, dtype = np.float64)
+xmix      : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64)
 
-def feval(x):
-    fx1 = x[0]**2+ x[1]**4
-    fx2 = (2-x[0])**2 + (2-x[1])**2
-    fx3 = 2*np.exp(x[1]-x[0])
-    return np.max([fx1,fx2,fx3])
+def feval(x : npt.NDArray[np.float64]) -> np.float64:
+    fx1 : np.float64 = x[0] ** 2 + x[1] ** 4
+    fx2 : np.float64 = (2 - x[0]) ** 2 + (2 - x[1]) ** 2
+    fx3 : np.float64 = 2 * np.exp(x[1] - x[0])
+    return np.max([fx1, fx2, fx3])

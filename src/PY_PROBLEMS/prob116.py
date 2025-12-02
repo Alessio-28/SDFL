@@ -15,20 +15,20 @@ Created on Fri Oct 16 17:38:11 2020
 """
 
 import numpy as np
+import numpy.typing as npt
 
-name      = 'SO-I prob. 16'
-n      = 8
-nint   = 4
-ncont  = n-nint
-lb     =-10.0*np.ones(n)
-ub     = 10.0*np.ones(n)
-lbmix  =-10.0*np.ones(n)
-ubmix  = 10.0*np.ones(n)
-startp =   0.0*np.ones(n) 
-x_initial =0.0*np.ones(n) 
-xmix   = np.zeros(n)
+name      : str = "SO-I prob. 16"
+n         : int = 8
+nint      : int = 4
+ncont     : int = n - nint
+lb        : npt.NDArray[np.float64] = -10 * np.ones(n, dtype = np.float64)
+ub        : npt.NDArray[np.float64] =  10 * np.ones(n, dtype = np.float64)
+lbmix     : npt.NDArray[np.float64] = -10 * np.ones(n, dtype = np.float64)
+ubmix     : npt.NDArray[np.float64] =  10 * np.ones(n, dtype = np.float64)
+startp    : npt.NDArray[np.float64] =       np.ones(n, dtype = np.float64) 
+x_initial : npt.NDArray[np.float64] =       np.ones(n, dtype = np.float64) 
+xmix      : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64)
 
-def feval(x):  #*x[0] *x[1] *x[2] x[3] x[4]
-    f = 3.1*x[0]**2 + 7.6*x[1]**2 + 6.9*x[2]**2 + 0.004*x[3]**2 + 19*x[4]**2 + 3*x[5]**2 + x[6]**2 + 4*x[7]**2
+def feval(x : npt.NDArray[np.float64]) -> np.float64:
+    f = 3.1 * x[0] ** 2 + 7.6 * x[1] ** 2 + 6.9 * x[2] ** 2 + 0.004 * x[3] ** 2 + 19 * x[4] ** 2 + 3 * x[5] ** 2 + x[6] ** 2 + 4 * x[7] ** 2
     return f
-

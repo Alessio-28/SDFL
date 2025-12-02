@@ -6,18 +6,19 @@ Created on Fri Oct 16 17:38:11 2020
 """
 
 import numpy as np
+import numpy.typing as npt
 
-name      = 'banex'
-n      = 2
-startp = np.zeros(n)
-lb     = np.array([-50.0, 0.0])
-ub     = np.array([10.0, 100.0])
-nint   = 2
-ncont  = n-nint
-lbmix  = np.zeros(n)
-ubmix  = 100.0*np.ones(n)
-x_initial = 50*np.ones(n) 
-xmix   = np.zeros(n)
+name      : str = "banex"
+n         : int = 2
+startp    : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64)
+lb        : npt.NDArray[np.float64] = np.array([-50,   0], dtype = np.float64)
+ub        : npt.NDArray[np.float64] = np.array([ 10, 100], dtype = np.float64)
+nint      : int = 2
+ncont     : int = n - nint
+lbmix     : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64)
+ubmix     : npt.NDArray[np.float64] = 100 * np.ones(n, dtype = np.float64)
+x_initial : npt.NDArray[np.float64] =  50 * np.ones(n, dtype = np.float64) 
+xmix      : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64)
 
-def feval(x):
-    return (x[0]-1.0)**2 + 100.0*(x[0]**2-x[1])**2
+def feval(x : npt.NDArray[np.float64]) -> np.float64:
+    return (x[0] - 1) ** 2 + 100 * (x[0] ** 2 - x[1]) ** 2

@@ -14,20 +14,22 @@ Created on Fri Oct 16 17:38:11 2020
 """
 
 import numpy as np
+import numpy.typing as npt
 
-name      = 'MISO prob. 6'
-n      = 15
-nint   = 7
-ncont  = n-nint
-lb     =-15.0*np.ones(n)
-ub     = 30.0*np.ones(n)
-lbmix  =-15.0*np.ones(n)
-ubmix  = 30.0*np.ones(n)
-startp =   0.0*np.ones(n) 
-x_initial =7.0*np.ones(n) 
-xmix   = np.zeros(n)
+name      : str = "MISO prob. 6"
+n         : int = 15
+nint      : int = 7
+ncont     : int = n - nint
+lb        : npt.NDArray[np.float64] = -15 * np.ones(n, dtype = np.float64)
+ub        : npt.NDArray[np.float64] =  30 * np.ones(n, dtype = np.float64)
+lbmix     : npt.NDArray[np.float64] = -15 * np.ones(n, dtype = np.float64)
+ubmix     : npt.NDArray[np.float64] =  30 * np.ones(n, dtype = np.float64)
+startp    : npt.NDArray[np.float64] =       np.ones(n, dtype = np.float64) 
+x_initial : npt.NDArray[np.float64] =   7 * np.ones(n, dtype = np.float64) 
+xmix      : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64)
 
-def feval(x):  #*x[0] *x[1] *x[2] x[3] x[4]
-    f = - 20*np.exp(-0.2*np.sqrt(np.sum(x**2)/15)) - np.exp(np.sum(np.cos(2*np.pi*x))/15)
+def feval(x : npt.NDArray[np.float64]) -> np.float64:
+    f = -20 * np.exp(-0.2 * np.sqrt(np.sum(x ** 2) / 15)) - np.exp(np.sum(np.cos(2 * np.pi * x)) / 15)
     return f
+
 

@@ -14,22 +14,20 @@ Created on Fri Oct 16 17:38:11 2020
 """
 
 import numpy as np
+import numpy.typing as npt
 
-name      = 'MISO prob. 8'
-n      = 15
-nint   = 10
-ncont  = n-nint
-lb     =-15.0*np.ones(n)
-ub     = 30.0*np.ones(n)
-lbmix  =-15.0*np.ones(n)
-ubmix  = 30.0*np.ones(n)
-startp =   7.0*np.ones(n) 
-x_initial =7.0*np.ones(n) 
-xmix   = np.zeros(n)
+name      : str = "MISO prob. 8"
+n         : int = 15
+nint      : int = 10
+ncont     : int = n - nint
+lb        : npt.NDArray[np.float64] = -15 * np.ones(n, dtype = np.float64)
+ub        : npt.NDArray[np.float64] =  30 * np.ones(n, dtype = np.float64)
+lbmix     : npt.NDArray[np.float64] = -15 * np.ones(n, dtype = np.float64)
+ubmix     : npt.NDArray[np.float64] =  30 * np.ones(n, dtype = np.float64)
+startp    : npt.NDArray[np.float64] =   7 * np.ones(n, dtype = np.float64) 
+x_initial : npt.NDArray[np.float64] =   7 * np.ones(n, dtype = np.float64) 
+xmix      : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64)
 
-def feval(x):  
-    # continue 5  da 11 a 15  --> (per noi) da 0 a 4
-    # discrete 10 da  1 a 10  --> (per noi) da 5 a 14  
-    #f = (x(1) - 1)^2 + sum([2:15]'.*(2*x(2:15).^2 - x(1:14)).^2);
-    f = (x[5]-1)**2 + np.sum(np.arange(1,14)*(2*x[1:14]**2 - x[0:13]**2))
+def feval(x : npt.NDArray[np.float64]) -> np.float64:  
+    f = (x[5] - 1) ** 2 + np.sum(np.arange(1, 14) * (2 * x[1:14] ** 2 - x[0:13] ** 2))
     return f

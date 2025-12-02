@@ -6,25 +6,26 @@ Created on Fri Oct 16 17:38:11 2020
 """
 
 import numpy as np
+import numpy.typing as npt
 
-name      = 'davidon2'
-startp = np.array([25.0,5.0,-5.0,-1.0])
-lb     = startp - 10.0
-ub     = startp + 10.0
-n      = len(lb)
-nint   = 2
-ncont  = n-nint
-lbmix  = np.zeros(n); lbmix[:ncont] = lb[:ncont]
-ubmix  = 100*np.ones(n); ubmix[:ncont] = ub[:ncont]
-x_initial = 50*np.ones(n); x_initial[:ncont] = (ub[:ncont] + lb[:ncont])/2 
-xmix   = np.zeros(n)
+name      : str = "davidon2"
+startp    : npt.NDArray[np.float64] = np.array([25, 5, -5, -1], dtype = np.float64)
+lb        : npt.NDArray[np.float64] = startp - 10
+ub        : npt.NDArray[np.float64] = startp + 10
+n         : int = len(lb)
+nint      : int = 2
+ncont     : int = n - nint
+lbmix     : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64);      lbmix[:ncont]     = lb[:ncont]
+ubmix     : npt.NDArray[np.float64] = 100 * np.ones(n, dtype = np.float64); ubmix[:ncont]     = ub[:ncont]
+x_initial : npt.NDArray[np.float64] =  50 * np.ones(n, dtype = np.float64); x_initial[:ncont] = (ub[:ncont] + lb[:ncont]) / 2 
+xmix      : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64)
 
 
-def feval(x):
-    t = np.zeros(21)
-    f = np.zeros(21)
-    for i in range(1,22):
-        t[i-1] = 0.25 + 0.75*(i-1)/20.0
-        f[i-1] = x[3] - (x[0]*t[i-1]**2 + x[1]*t[i-1] + x[2])**2 - np.sqrt(t[i-1])
-    y = np.max(np.abs(f));
+def feval(x : npt.NDArray[np.float64]) -> np.float64:
+    t : npt.NDArray[np.float64] = np.zeros(21, dtype = np.float64)
+    f : npt.NDArray[np.float64] = np.zeros(21, dtype = np.float64)
+    for i in range(1, 22):
+        t[i - 1] = 0.25 + 0.75 * (i - 1) / 20
+        f[i - 1] = x[3] - (x[0] * t[i - 1] ** 2 + x[1] * t[i - 1] + x[2]) ** 2 - np.sqrt(t[i - 1])
+    y : np.float64 = np.max(np.abs(f));
     return y
