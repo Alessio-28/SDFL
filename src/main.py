@@ -8,6 +8,8 @@ from PY_PROBLEMS import Problems
 
 import json
 
+#####################################################################
+#####################################################################
 # from time import time
 # import logging
 # main_log : logging.Logger = logging.getLogger(name = __name__)
@@ -17,32 +19,39 @@ import json
 # logging.basicConfig(
 #     # filename = "main.log",
 #     level = logging.DEBUG,
-#     filemode = "w",
+#     filemode = "a",
 #     # format = "%(asctime)s - %(name)s - %(levelname)s: %(message)s"
 # )
 # main_log.addHandler(main_file)
 # sdfl_log.addHandler(sdfl_file)
+#####################################################################
+#####################################################################
 
 def cmdline() -> None:
     parser = ap.ArgumentParser(prog = "sdfl", usage = "%(prog)s")
     parser.add_argument("--list-algorithms", action = "store_true", help = "Prints the list of available algorithms")
 
 def test(name : str, f : sdfl.ObjectiveFunction, dim : int, x_0 : NDArray[float64], param : sdfl.Parameters) -> None:
+    ####### Passo iniziale #######
     step_0 = np.array([1]*dim, dtype = float64)
 
+############# Logging ##########################
     # sdfl_log.debug(f"Algorithm: {name}")
     # start = time()
+################################################
+
     x_m = sdfl.SDFL(f, x_0, step_0, param)
+
+############# Logging ##########################
     # end = time()
     # main_log.debug(f"Algorithm: {name}, time: {end - start:0.3f}, start: {x_0[:]}, min: {x_m[:]}")
+################################################
 
     print(f"Funzione:       {name}")
     print(f"Punto iniziale: {x_0}")
     print(f"Minimo trovato: {x_m}\n")
 
 def main() -> None:
-    ## I parametri possono essere anche impostati dal file parameters.json
-
     # with open("parameters.json") as p:
     #     data = json.load(p)
     #
@@ -72,6 +81,7 @@ def main() -> None:
         # "colville1",
         # "crescent",
         # "davidon2",
+        # "elattar",
         # "evd61",
         # "gill",
         # "goffin",
@@ -81,6 +91,7 @@ def main() -> None:
         # "l1hilb20",
         # "l1hilb30",
         # "l1hilb40",
+        # "lukexp",
         # "lukfilter",
         # "lukgamma",
         # "maxl",
@@ -94,6 +105,7 @@ def main() -> None:
         # "oet6",
         # "osborne2",
         # "pbc1",
+        # "polak2",
         # "polak3",
         # "polak6",
         # "prob10",
@@ -117,10 +129,6 @@ def main() -> None:
         # "wong1",
         # "wong2",
         # "wong3",
-        #
-        # "elattar",
-        # "polak2",
-        # "lukexp",
     ]
 
     Problems.prob_collection = {}

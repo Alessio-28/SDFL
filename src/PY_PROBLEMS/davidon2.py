@@ -22,10 +22,9 @@ xmix      : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64)
 
 
 def feval(x : npt.NDArray[np.float64]) -> np.float64:
-    t : npt.NDArray[np.float64] = np.zeros(21, dtype = np.float64)
     f : npt.NDArray[np.float64] = np.zeros(21, dtype = np.float64)
-    for i in range(1, 22):
-        t[i - 1] = 0.25 + 0.75 * (i - 1) / 20
-        f[i - 1] = x[3] - (x[0] * t[i - 1] ** 2 + x[1] * t[i - 1] + x[2]) ** 2 - np.sqrt(t[i - 1])
+    for i in range(21):
+        t = 0.25 + (0.75 / 20) * i
+        f[i] = x[3] - (x[0] * t ** 2 + x[1] * t + x[2]) ** 2 - np.sqrt(t)
     y : np.float64 = np.max(np.abs(f));
     return y

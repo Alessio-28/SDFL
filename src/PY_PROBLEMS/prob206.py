@@ -31,5 +31,3 @@ xmix      : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64)
 def feval(x : npt.NDArray[np.float64]) -> np.float64:
     f = -20 * np.exp(-0.2 * np.sqrt(np.sum(x ** 2) / 15)) - np.exp(np.sum(np.cos(2 * np.pi * x)) / 15)
     return f
-
-

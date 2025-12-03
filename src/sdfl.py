@@ -98,13 +98,13 @@ def __line_search(F : ObjectiveFunction, y : Point, F_dir : float64, direction_s
         F_a, F_b = F_b, F(y)
 ############# Logging ##########################
     # line_log.debug(f"y_i: {y[index]}, iter2: {iter2}, Step: {step_size}")
-################################################
+###############################################
 
     y[index] -= step * iter2
 
 ############# Logging ##########################
     # line_log.debug(f"y_i: {y[index]}, Step size: {step_size * iter2}")
-################################################
+###############################################
 
     return step_size * iter2
 

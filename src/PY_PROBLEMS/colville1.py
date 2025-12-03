@@ -57,5 +57,5 @@ def feval(x : npt.NDArray[np.float64]) -> np.float64:
     ee : npt.NDArray[np.float64] = np.array([ [-15, -27, -36, -18, -12] ], dtype = np.float64)
 
     y : npt.NDArray[np.float64] = np.sum(d * x ** 3) + np.sum(np.sum(C * (x * x))) + np.matmul(ee, x) + 50 * np.maximum(0, np.max(b - np.matmul(A, x)))
-    
+
     return y[0][0]
