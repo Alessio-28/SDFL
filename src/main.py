@@ -1,6 +1,5 @@
 import numpy as np
 from numpy import float64
-from numpy.typing import NDArray
 import argparse as ap
 
 import sdfl
@@ -8,20 +7,23 @@ from PY_PROBLEMS import Problems
 
 import json
 
-#####################################################################
+############# Logging ###############################################
 #####################################################################
 # from time import time
 # import logging
+#
+# main_file : logging.FileHandler = logging.FileHandler(filename = "main.log", mode = "w")
+# sdfl_file : logging.FileHandler = logging.FileHandler(filename = "sdfl.log", mode = "w")
+#
+# main_file.setLevel(logging.DEBUG)
+# sdfl_file.setLevel(logging.DEBUG)
+#
 # main_log : logging.Logger = logging.getLogger(name = __name__)
 # sdfl_log : logging.Logger = logging.getLogger(name = f"{main_log.name}.sdfl")
-# main_file : logging.FileHandler = logging.FileHandler("main.log")
-# sdfl_file : logging.FileHandler = logging.FileHandler("sdfl.log")
-# logging.basicConfig(
-#     # filename = "main.log",
-#     level = logging.DEBUG,
-#     filemode = "a",
-#     # format = "%(asctime)s - %(name)s - %(levelname)s: %(message)s"
-# )
+#
+# main_log.setLevel(logging.DEBUG)
+# sdfl_log.setLevel(logging.DEBUG)
+#
 # main_log.addHandler(main_file)
 # sdfl_log.addHandler(sdfl_file)
 #####################################################################
@@ -31,9 +33,9 @@ def cmdline() -> None:
     parser = ap.ArgumentParser(prog = "sdfl", usage = "%(prog)s")
     parser.add_argument("--list-algorithms", action = "store_true", help = "Prints the list of available algorithms")
 
-def test(name : str, f : sdfl.ObjectiveFunction, dim : int, x_0 : NDArray[float64], param : sdfl.Parameters) -> None:
+def test(name : str, f : sdfl.ObjectiveFunction, dim : int, x_0 : sdfl.Point, param : sdfl.Parameters) -> None:
     ####### Passo iniziale #######
-    step_0 = np.array([1]*dim, dtype = float64)
+    step_0 = np.array([1] * dim, dtype = float64)
 
 ############# Logging ##########################
     # sdfl_log.debug(f"Algorithm: {name}")
@@ -44,7 +46,7 @@ def test(name : str, f : sdfl.ObjectiveFunction, dim : int, x_0 : NDArray[float6
 
 ############# Logging ##########################
     # end = time()
-    # main_log.debug(f"Algorithm: {name}, time: {end - start:0.3f}, start: {x_0[:]}, min: {x_m[:]}")
+    # main_log.debug(f"Algorithm: {name}, time: {end - start:0.3f}, start: {x_0}, min: {x_m}")
 ################################################
 
     print(f"Funzione:       {name}")

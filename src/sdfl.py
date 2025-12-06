@@ -5,26 +5,29 @@ from typing import Callable, TypeAlias, Tuple
 from enum import Enum
 from dataclasses import dataclass
 
-#####################################################################
+############# Logging ###############################################
 #####################################################################
 # import logging
+#
+# fh : logging.FileHandler  = logging.FileHandler(filename = "sdfl.log", mode = "w")
+#
+# fh.setLevel(logging.DEBUG)
+#
 # sdfl_log : logging.Logger = logging.getLogger(name = __name__)
 # dir_log  : logging.Logger = logging.getLogger(name = f"{sdfl_log.name}.direction")
 # line_log : logging.Logger = logging.getLogger(name = f"{sdfl_log.name}.line")
-# fh : logging.FileHandler  = logging.FileHandler("sdfl.log")
-# logging.basicConfig(
-#     filename = "sdfl.log",
-#     level = logging.DEBUG,
-#     filemode = "w",
-#     # format = "%(asctime)s - %(name)s - %(levelname)s: %(message)s"
-# )
+#
+# sdfl_log.setLevel(logging.DEBUG)
+# dir_log.setLevel(logging.DEBUG)
+# line_log.setLevel(logging.DEBUG)
+#
 # sdfl_log.addHandler(fh)
 # dir_log.addHandler(fh)
 # line_log.addHandler(fh)
 #####################################################################
 #####################################################################
 
-Point     : TypeAlias = NDArray[float64]
+Point : TypeAlias = NDArray[float64]
 ObjectiveFunction : TypeAlias = Callable[[Point], float64]
 
 @dataclass(frozen = True)
@@ -96,14 +99,11 @@ def __line_search(F : ObjectiveFunction, y : Point, F_dir : float64, direction_s
         y[index] += iter2 * step
 
         F_a, F_b = F_b, F(y)
-############# Logging ##########################
-    # line_log.debug(f"y_i: {y[index]}, iter2: {iter2}, Step: {step_size}")
-###############################################
 
     y[index] -= step * iter2
 
 ############# Logging ##########################
-    # line_log.debug(f"y_i: {y[index]}, Step size: {step_size * iter2}")
+    # line_log.debug(f"y_i: {y[index]}, Step size: {step_size * iter2}, Step: {step_size}, iter2: {iter2}")
 ###############################################
 
     return step_size * iter2
@@ -144,7 +144,7 @@ def SDFL(obj_func : ObjectiveFunction, starting_point : Point, starting_step : N
         for i in range(n):
 
 ############# Logging ##########################
-            # sdfl_log.debug(f"Pre:  Iter: [{log_counter}|{i}], y: {y[:]}, direction: {prev_dir_res.name}, F_y: {F_y}")
+            # sdfl_log.debug(f"Pre:  Iter: [{log_counter}|{i}], y: {y}, direction: {prev_dir_res.name}, F_y: {F_y}")
 ################################################
 
             if prev_dir_res != __DirectionResult.FAILURE:
@@ -163,7 +163,7 @@ def SDFL(obj_func : ObjectiveFunction, starting_point : Point, starting_step : N
             prev_dir_res = dir_res
 
 ############# Logging ##########################
-        #     sdfl_log.debug(f"Post: Iter: [{log_counter}|{i}], y: {y[:]}, step: {accepted_step[i]}, direction: {dir_res.name}, F_y: {F_y}, F_dir: {F_dir}")
+        #     sdfl_log.debug(f"Post: Iter: [{log_counter}|{i}], y: {y}, step: {accepted_step[i]}, direction: {dir_res.name}, F_y: {F_y}, F_dir: {F_dir}")
         # sdfl_log.debug(f"New point found: {new_point_found}")
         # log_counter += 1
 ################################################
@@ -176,6 +176,7 @@ def SDFL(obj_func : ObjectiveFunction, starting_point : Point, starting_step : N
         max_tentative_step = np.max(tentative_step)
 
 ############# Logging ##########################
+    # sdfl_log.debug(f"Minimum: {x}")
     # sdfl_log.debug("SDFL: End")
 ################################################
 
