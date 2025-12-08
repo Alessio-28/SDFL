@@ -40,21 +40,21 @@ class Parameters:
 
 class __FunctionWrapper:
     __obj_func : ObjectiveFunction
-    __nF : int
+    __evaluations : int
 
     def __init__(self : __FunctionWrapper, obj_func : ObjectiveFunction) -> None:
         self.__obj_func = obj_func
-        self.__nF = 0
+        self.__evaluations = 0
 
     def eval(self : __FunctionWrapper, x : Point) -> float64:
-        self.__nF += 1
+        self.__evaluations += 1
         return self.__obj_func(x)
 
     def get_obj_func(self : __FunctionWrapper) -> ObjectiveFunction:
         return self.__obj_func
 
     def get_nF(self : __FunctionWrapper) -> int:
-        return self.__nF
+        return self.__evaluations
 
 
 class __DirectionResult(Enum):
@@ -71,18 +71,22 @@ def __compute_bound(coeff : float64, step_size : float64) -> float64:
 def __compute_direction(F : ObjectiveFunction, y : Point, F_y : float64, step_size : float64, index : int, bound_coeff : float64) -> Tuple[__DirectionResult, float64]:
     F_bound : float64 = F_y + __compute_bound(bound_coeff, step_size)
 
+    # Try POSITIVE direction
     y[index] += step_size
     F_dir : float64 = F(y)
     if F_dir > F_bound:
+        # Try NEGATIVE direction
         y[index] -= 2 * step_size
         F_dir = F(y)
 
+        # Restore changes
         y[index] += step_size
         if F_dir > F_bound:
             return (__DirectionResult.FAILURE, F_dir)
         else:
             return (__DirectionResult.NEGATIVE, F_dir)
 
+    # Restore changes
     y[index] -= step_size
     return (__DirectionResult.POSITIVE, F_dir)
 
@@ -100,6 +104,7 @@ def __line_search(F : ObjectiveFunction, y : Point, F_dir : float64, direction_s
 
         F_a, F_b = F_b, F(y)
 
+    # Restore changes
     y[index] -= step * iter2
 
 ############# Logging ##########################
@@ -133,7 +138,7 @@ def SDFL(obj_func : ObjectiveFunction, starting_point : Point, starting_step : N
     theta : float64 = param.theta
 
     F_y : float64 = float64(0)
-    x : Point = starting_point.copy()
+    minimum : Point = starting_point.copy()
     y : Point = starting_point.copy()
 
     prev_dir_res : __DirectionResult = __DirectionResult.POSITIVE
@@ -169,7 +174,7 @@ def SDFL(obj_func : ObjectiveFunction, starting_point : Point, starting_step : N
 ################################################
 
         if new_point_found:
-            x[:] = y
+            minimum[:] = y
             np.maximum(accepted_step, init_step, out = tentative_step)
         else:
             tentative_step = theta * init_step
@@ -180,4 +185,4 @@ def SDFL(obj_func : ObjectiveFunction, starting_point : Point, starting_step : N
     # sdfl_log.debug("SDFL: End")
 ################################################
 
-    return x
+    return minimum
