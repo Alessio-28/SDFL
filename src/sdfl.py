@@ -1,7 +1,8 @@
 import numpy as np
 from numpy import float64
 from numpy.typing import NDArray
-from typing import Callable, TypeAlias, Tuple
+from collections.abc import Callable
+from typing import Tuple
 from enum import Enum
 from dataclasses import dataclass
 
@@ -27,8 +28,8 @@ from dataclasses import dataclass
 #####################################################################
 #####################################################################
 
-Point : TypeAlias = NDArray[float64]
-ObjectiveFunction : TypeAlias = Callable[[Point], float64]
+type Point = NDArray[float64]
+type ObjectiveFunction = Callable[[Point], float64]
 
 @dataclass(frozen = True)
 class Parameters:
