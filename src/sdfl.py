@@ -6,184 +6,186 @@ from typing import Tuple
 from enum import Enum
 from dataclasses import dataclass
 
-############# Logging ###############################################
-#####################################################################
-# import logging
-#
-# fh : logging.FileHandler  = logging.FileHandler(filename = "sdfl.log", mode = "w")
-#
-# fh.setLevel(logging.DEBUG)
-#
-# sdfl_log : logging.Logger = logging.getLogger(name = __name__)
-# dir_log  : logging.Logger = logging.getLogger(name = f"{sdfl_log.name}.direction")
-# line_log : logging.Logger = logging.getLogger(name = f"{sdfl_log.name}.line")
-#
-# sdfl_log.setLevel(logging.DEBUG)
-# dir_log.setLevel(logging.DEBUG)
-# line_log.setLevel(logging.DEBUG)
-#
-# sdfl_log.addHandler(fh)
-# dir_log.addHandler(fh)
-# line_log.addHandler(fh)
-#####################################################################
-#####################################################################
+################ Logging #######################################
+import logging
+LOGGING : bool = False
+
+_fh : logging.FileHandler 
+_sdfl_log : logging.Logger
+# _dir_log : logging.Logger
+# _line_log : logging.Logger
+
+def _setup_logging() -> None:
+    global _fh
+    global _sdfl_log
+    # global _dir_log
+    # global _line_log
+
+    _fh = logging.FileHandler(filename = "sdfl.log", mode = "w")
+
+    _fh.setLevel(logging.DEBUG)
+
+    _sdfl_log = logging.getLogger(name = __name__)
+    # _dir_log = logging.getLogger(name = f"{_sdfl_log.name}.direction")
+    # _line_log = logging.getLogger(name = f"{_sdfl_log.name}.line")
+
+    _sdfl_log.setLevel(logging.DEBUG)
+    # _dir_log.setLevel(logging.DEBUG)
+    # _line_log.setLevel(logging.DEBUG)
+
+    _sdfl_log.addHandler(_fh)
+    # _dir_log.addHandler(_fh)
+    # _line_log.addHandler(_fh)
+################################################################
 
 type Point = NDArray[float64]
 type ObjectiveFunction = Callable[[Point], float64]
 
 @dataclass(frozen = True)
 class Parameters:
-    theta   : float64
-    gamma   : float64
-    c       : float64
-    eta     : float64
-    epsilon : float64
+    theta   : float64 # in (0, 1)
+    gamma   : float64 # > 2
+    c       : float64 # > 0
+    eta     : float64 # > 0
+    epsilon : float64 # > 0
 
-class __FunctionWrapper:
-    __obj_func : ObjectiveFunction
-    __evaluations : int
+class _FunctionWrapper:
+    _obj_func : ObjectiveFunction
+    _evaluations : int
 
-    def __init__(self : __FunctionWrapper, obj_func : ObjectiveFunction) -> None:
-        self.__obj_func = obj_func
-        self.__evaluations = 0
+    def __init__(self : _FunctionWrapper, obj_func : ObjectiveFunction) -> None:
+        self._obj_func = obj_func
+        self._evaluations = 0
 
-    def eval(self : __FunctionWrapper, x : Point) -> float64:
-        self.__evaluations += 1
-        return self.__obj_func(x)
+    def eval(self : _FunctionWrapper, x : Point) -> float64:
+        self._evaluations += 1
+        return self._obj_func(x)
 
-    def get_obj_func(self : __FunctionWrapper) -> ObjectiveFunction:
-        return self.__obj_func
-
-    def get_nF(self : __FunctionWrapper) -> int:
-        return self.__evaluations
-
-
-class __DirectionResult(Enum):
+class _DirectionResult(Enum):
     POSITIVE =  1
     NEGATIVE = -1
     FAILURE  =  0
 
-def __compute_bound_coeff(param : Parameters) -> float64:
+def _compute_bound_coeff(param : Parameters) -> float64:
     return -param.gamma * param.c * param.epsilon
 
-def __compute_bound(coeff : float64, step_size : float64) -> float64:
+def _compute_bound(coeff : float64, step_size : float64) -> float64:
     return coeff * step_size * step_size
 
-def __compute_direction(F : ObjectiveFunction, y : Point, F_y : float64, step_size : float64, index : int, bound_coeff : float64) -> Tuple[__DirectionResult, float64]:
-    F_bound : float64 = F_y + __compute_bound(bound_coeff, step_size)
+def _compute_direction(obj_func : ObjectiveFunction, point : Point, func_eval_at_point : float64, step_size : float64, index : int, bound_coeff : float64) -> Tuple[_DirectionResult, float64]:
+    elem : float64 = point[index]
+    F_bound : float64 = func_eval_at_point + _compute_bound(bound_coeff, step_size)
 
     # Try POSITIVE direction
-    y[index] += step_size
-    F_dir : float64 = F(y)
-    if F_dir > F_bound:
+    point[index] = elem + step_size
+    func_eval_at_direction : float64 = obj_func(point)
+    if func_eval_at_direction > F_bound:
         # Try NEGATIVE direction
-        y[index] -= 2 * step_size
-        F_dir = F(y)
+        point[index] = elem - step_size
+        func_eval_at_direction = obj_func(point)
 
         # Restore changes
-        y[index] += step_size
-        if F_dir > F_bound:
-            return (__DirectionResult.FAILURE, F_dir)
+        point[index] = elem
+        if func_eval_at_direction > F_bound:
+            return (_DirectionResult.FAILURE, func_eval_at_direction)
         else:
-            return (__DirectionResult.NEGATIVE, F_dir)
+            return (_DirectionResult.NEGATIVE, func_eval_at_direction)
 
     # Restore changes
-    y[index] -= step_size
-    return (__DirectionResult.POSITIVE, F_dir)
+    point[index] = elem
+    return (_DirectionResult.POSITIVE, func_eval_at_direction)
 
-def __line_search(F : ObjectiveFunction, y : Point, F_dir : float64, direction_sign : int, step_size : float64, index : int, bound_coeff : float64) -> float64:
+def _line_search(obj_func : ObjectiveFunction, point : Point, func_eval_at_point : float64, direction_sign : int, step_size : float64, index : int, bound_coeff : float64) -> float64:
+    elem : float64 = point[index]
+    step : float64 = step_size * direction_sign
+    step_aux : float64 = step * 2
+
     iter2 : int = 1
-    step  : float64 = step_size * direction_sign
-    bound : float64 = __compute_bound(bound_coeff, step_size)
+    bound : float64 = _compute_bound(bound_coeff, step_size)
 
-    F_a : float64 = F_dir
-    y[index] += 2 * step
-    F_b : float64 = F(y)
-    while F_b - F_a <= bound * (iter2 * iter2):
+    F_a : float64 = func_eval_at_point
+    point[index] = elem + step_aux
+    F_b : float64 = obj_func(point)
+    while F_b - F_a <= bound * iter2 * iter2:
         iter2 *= 2
-        y[index] += iter2 * step
+        point[index] = elem + iter2 * step_aux
 
-        F_a, F_b = F_b, F(y)
+        F_a, F_b = F_b, obj_func(point)
 
     # Restore changes
-    y[index] -= step * iter2
-
-############# Logging ##########################
-    # line_log.debug(f"y_i: {y[index]}, Step size: {step_size * iter2}, Step: {step_size}, iter2: {iter2}")
-###############################################
+    point[index] = elem + iter2 * step
 
     return step_size * iter2
 
-def SDFL(obj_func : ObjectiveFunction, starting_point : Point, starting_step : NDArray[float64], param : Parameters) -> Point:
-
-############# Logging ##########################
-    # sdfl_log.debug("SDFL: Start")
-    # log_counter : int = 0
-################################################
-
-    LIMIT : float64 = float64(1e-8)
-    direction_sign : int = 0
+def SDFL(obj_func : ObjectiveFunction, starting_point : Point, starting_step : NDArray[float64], param : Parameters, evaluations : int) -> Point:
+    LIMIT_EVAL : int = evaluations
+    LIMIT_STEP : float64 = float64(1e-8)
     n : int = starting_point.size
 
-    f_wrapper : __FunctionWrapper = __FunctionWrapper(obj_func)
+    f_wrapper : _FunctionWrapper = _FunctionWrapper(obj_func)
     F : ObjectiveFunction = f_wrapper.eval
 
-    # Creare una classe?
-    accepted_step  : NDArray[float64] = np.zeros(n, dtype = float64) # \alpha_k^i
-    init_step      : NDArray[float64] = np.zeros(n, dtype = float64) # \bar{\alpha}_k^i
-    tentative_step : NDArray[float64] = starting_step.copy()         # \tilde{\alpha}_k^i
+    accepted_step  : NDArray[float64] = np.zeros(n, dtype = float64) # \alpha
+    # init_step      : NDArray[float64] = np.zeros(n, dtype = float64) # \bar{\alpha}
+    tentative_step : NDArray[float64] = starting_step.copy()         # \tilde{\alpha}
     max_tentative_step : float64 = np.max(tentative_step)
 
-    bound_coeff : float64 = __compute_bound_coeff(param)
+    bound_coeff : float64 = _compute_bound_coeff(param)
     eta   : float64 = param.eta
     theta : float64 = param.theta
 
-    F_y : float64 = float64(0)
-    minimum : Point = starting_point.copy()
-    y : Point = starting_point.copy()
+    current_point : Point = starting_point.copy()
 
-    prev_dir_res : __DirectionResult = __DirectionResult.POSITIVE
-    while max_tentative_step > LIMIT:
+    func_eval_at_cur_point : float64 = F(current_point)
+    prev_dir_res : _DirectionResult = _DirectionResult.FAILURE
+
+    ############ Logging #######################################
+    if LOGGING:
+        _sdfl_log.debug("########## SDFL: Start ##########")
+    ############################################################
+
+    while f_wrapper._evaluations < LIMIT_EVAL: # and max_tentative_step >= LIMIT_STEP:
         new_point_found : bool = False
-        np.maximum(tentative_step, eta * max_tentative_step, out = init_step)
+        np.maximum(tentative_step, eta * max_tentative_step, out = tentative_step)
 
         for i in range(n):
 
-############# Logging ##########################
-            # sdfl_log.debug(f"Pre:  Iter: [{log_counter}|{i}], y: {y}, direction: {prev_dir_res.name}, F_y: {F_y}")
-################################################
+            if prev_dir_res != _DirectionResult.FAILURE:
+                func_eval_at_cur_point = F(current_point)
 
-            if prev_dir_res != __DirectionResult.FAILURE:
-                F_y = F(y)
+            #### Logging #######################################
+            if LOGGING:
+                _sdfl_log.debug(f"x = {current_point}")
+                _sdfl_log.debug(f"F(x) = {func_eval_at_cur_point}")
+                _sdfl_log.debug(f"Step = {tentative_step}\n")
+            ####################################################
 
-            dir_res : __DirectionResult
-            F_dir : float64
-            (dir_res , F_dir) = __compute_direction(F, y, F_y, init_step[i], i, bound_coeff)
+            dir_res : _DirectionResult
+            func_eval_at_direction : float64
+            (dir_res , func_eval_at_direction) = _compute_direction(F, current_point, func_eval_at_cur_point, tentative_step[i], i, bound_coeff)
 
-            if dir_res == __DirectionResult.FAILURE:
+            if dir_res == _DirectionResult.FAILURE:
                 accepted_step[i] = 0
             else:
-                direction_sign = dir_res.value
-                accepted_step[i] = __line_search(F, y, F_dir, direction_sign, init_step[i], i, bound_coeff)
+                accepted_step[i] = _line_search(F, current_point, func_eval_at_direction, dir_res.value, tentative_step[i], i, bound_coeff)
                 new_point_found = True
             prev_dir_res = dir_res
 
-############# Logging ##########################
-        #     sdfl_log.debug(f"Post: Iter: [{log_counter}|{i}], y: {y}, step: {accepted_step[i]}, direction: {dir_res.name}, F_y: {F_y}, F_dir: {F_dir}")
-        # sdfl_log.debug(f"New point found: {new_point_found}")
-        # log_counter += 1
-################################################
+        ######## Logging #######################################
+        if LOGGING:
+            _sdfl_log.debug(f"New point found: {new_point_found}\n")
+        ########################################################
 
         if new_point_found:
-            minimum[:] = y
-            np.maximum(accepted_step, init_step, out = tentative_step)
+            np.maximum(accepted_step, tentative_step, out = tentative_step)
         else:
-            tentative_step = theta * init_step
+            tentative_step *= theta
         max_tentative_step = np.max(tentative_step)
 
-############# Logging ##########################
-    # sdfl_log.debug(f"Minimum: {x}")
-    # sdfl_log.debug("SDFL: End")
-################################################
+    ############ Logging #######################################
+    if LOGGING:
+        _sdfl_log.debug(f"Minimum: {current_point}")
+        _sdfl_log.debug("########## SDFL: End ##########\n")
+    ############################################################
 
-    return minimum
+    return current_point
