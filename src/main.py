@@ -11,7 +11,7 @@ from PY_PROBLEMS import Problems
 from time import time
 import logging
 
-LOGGING : bool = True
+LOGGING : bool = False
 
 if LOGGING:
     sdfl.LOGGING = True
