@@ -36,8 +36,9 @@ import numpy as np
 import numpy.typing as npt
 import importlib
 
-list_prob_names : list[str] = []
-prob_collection : dict[str, Problem] = {}
+from os import listdir
+from importlib import import_module
+from pathlib import Path
 
 class Problem:
     name      : str
@@ -110,9 +111,10 @@ class Problem:
         self.xmix = xmix
         self.feval = feval
 
-def set_problems() -> None:
-    for pname in list_prob_names:
-        mname = importlib.import_module(f"PY_PROBLEMS.{pname}")
+def set_problems(problems : list[str]) -> dict[str, Problem]:
+    prob_collection : dict[str, Problem] = {}
+    for pname in problems:
+        mname = importlib.import_module(f"src.problems.problem_files.{pname}")
         if mname.n >= 3:
             prob_collection[pname] = Problem(
                 name   = mname.name,
@@ -154,3 +156,29 @@ def set_problems() -> None:
                 xmix   = mname.xmix,
                 feval  = mname.feval
             )
+    return prob_collection
+
+problems : dict[str, str] | None = None
+def get_problems() -> dict[str, str]:
+    global problems
+    if problems is not None:
+        return problems
+    problems = {}
+    for file in listdir(Path("src//problems//problem_files")):
+        filename = file.split(".")
+        if len(filename) == 2 and filename[1] == "py":
+            module = import_module(f"src.problems.problem_files.{filename[0]}")
+            problems[module.name] = filename[0]
+    return problems
+
+def get_problem_names() -> list[str]:
+    probs : dict[str, str] = get_problems()
+    return list(probs.keys())
+
+def get_problem_files() -> list[str]:
+    probs : dict[str, str] = get_problems()
+    return list(probs.values())
+
+def print_problem_names() -> None:
+    probs : list[str] = get_problem_names()
+    print(*probs, sep = "\n")

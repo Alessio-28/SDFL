@@ -2,46 +2,32 @@ import numpy as np
 from numpy import float64
 from numpy.typing import NDArray
 from collections.abc import Callable
-from typing import Tuple
+from typing import cast
 from enum import Enum
-from dataclasses import dataclass
-
-################ Logging #######################################
 import logging
+
 LOGGING : bool = False
+LOG_PATH : str = "./log"
+LOG_FILE : str = "sdfl.log"
+MODE : str = "a"
 
 _fh : logging.FileHandler 
 _sdfl_log : logging.Logger
-# _dir_log : logging.Logger
-# _line_log : logging.Logger
 
 def _setup_logging() -> None:
     global _fh
     global _sdfl_log
-    # global _dir_log
-    # global _line_log
 
-    _fh = logging.FileHandler(filename = "sdfl.log", mode = "w")
-
+    _fh = logging.FileHandler(filename = f"{LOG_PATH}/{LOG_FILE}", mode = MODE) # emit()
     _fh.setLevel(logging.DEBUG)
 
     _sdfl_log = logging.getLogger(name = __name__)
-    # _dir_log = logging.getLogger(name = f"{_sdfl_log.name}.direction")
-    # _line_log = logging.getLogger(name = f"{_sdfl_log.name}.line")
-
     _sdfl_log.setLevel(logging.DEBUG)
-    # _dir_log.setLevel(logging.DEBUG)
-    # _line_log.setLevel(logging.DEBUG)
-
     _sdfl_log.addHandler(_fh)
-    # _dir_log.addHandler(_fh)
-    # _line_log.addHandler(_fh)
-################################################################
 
 type Point = NDArray[float64]
 type ObjectiveFunction = Callable[[Point], float64]
 
-@dataclass(frozen = True)
 class Parameters:
     theta   : float64 # in (0, 1)
     gamma   : float64 # > 2
@@ -49,17 +35,43 @@ class Parameters:
     eta     : float64 # > 0
     epsilon : float64 # > 0
 
+    _THETA_LOWER_BOUND   : int = 0
+    _THETA_UPPER_BOUND   : int = 1
+    _GAMMA_LOWER_BOUND   : int = 2
+    _C_LOWER_BOUND       : int = 0
+    _ETA_LOWER_BOUND     : int = 0
+    _EPSILON_LOWER_BOUND : int = 0
+
+    def __init__(self : Parameters, theta : float64, gamma : float64, c : float64, eta : float64, epsilon : float64) -> None:
+        if not (self._THETA_LOWER_BOUND < theta < self._THETA_UPPER_BOUND) or gamma <= self._GAMMA_LOWER_BOUND or c <= self._C_LOWER_BOUND or eta <= self._ETA_LOWER_BOUND or epsilon <= self._EPSILON_LOWER_BOUND:
+            str_error : str = (
+                "Invalid parameter values: "
+                f"{self._THETA_LOWER_BOUND} < theta < {self._THETA_UPPER_BOUND}, "
+                f"gamma > {self._GAMMA_LOWER_BOUND}, "
+                f"c > {self._C_LOWER_BOUND}, "
+                f"eta > {self._ETA_LOWER_BOUND}, "
+                f"epsilon > {self._EPSILON_LOWER_BOUND}"
+            )
+            raise ValueError(str_error)
+
+        self.theta    = theta
+        self.gamma    = gamma
+        self.c        = c
+        self.eta      = eta
+        self.epsilon  = epsilon
+
+
 class _FunctionWrapper:
-    _obj_func : ObjectiveFunction
-    _evaluations : int
+    obj_func : ObjectiveFunction
+    evaluations : int
 
     def __init__(self : _FunctionWrapper, obj_func : ObjectiveFunction) -> None:
-        self._obj_func = obj_func
-        self._evaluations = 0
+        self.obj_func = obj_func
+        self.evaluations = 0
 
     def eval(self : _FunctionWrapper, x : Point) -> float64:
-        self._evaluations += 1
-        return self._obj_func(x)
+        self.evaluations += 1
+        return self.obj_func(x)
 
 class _DirectionResult(Enum):
     POSITIVE =  1
@@ -72,8 +84,8 @@ def _compute_bound_coeff(param : Parameters) -> float64:
 def _compute_bound(coeff : float64, step_size : float64) -> float64:
     return coeff * step_size * step_size
 
-def _compute_direction(obj_func : ObjectiveFunction, point : Point, func_eval_at_point : float64, step_size : float64, index : int, bound_coeff : float64) -> Tuple[_DirectionResult, float64]:
-    elem : float64 = point[index]
+def _compute_direction(obj_func : ObjectiveFunction, point : Point, func_eval_at_point : float64, step_size : float64, index : int, bound_coeff : float64) -> tuple[_DirectionResult, float64]:
+    elem : float64 = cast(float64, point[index])
     F_bound : float64 = func_eval_at_point + _compute_bound(bound_coeff, step_size)
 
     # Try POSITIVE direction
@@ -117,9 +129,16 @@ def _line_search(obj_func : ObjectiveFunction, point : Point, func_eval_at_point
 
     return step_size * iter2
 
-def SDFL(obj_func : ObjectiveFunction, starting_point : Point, starting_step : NDArray[float64], param : Parameters, evaluations : int) -> Point:
-    LIMIT_EVAL : int = evaluations
-    LIMIT_STEP : float64 = float64(1e-8)
+def SDFL(obj_func : ObjectiveFunction, starting_point : Point, starting_step : NDArray[float64], param : Parameters, limit_evaluations : int, limit_step : float64) -> Point:
+    if len(starting_point.shape) != 1:
+        raise ValueError("starting_point must be a 1-dimensional array")
+    if len(starting_step.shape) != 1:
+        raise ValueError("starting_step must be a 1-dimensional array")
+    if starting_point.size != starting_step.size:
+        raise ValueError("starting_point and starting_step must have the same size")
+
+    LIMIT_EVAL : int = limit_evaluations
+    LIMIT_STEP : float64 = limit_step
     n : int = starting_point.size
 
     f_wrapper : _FunctionWrapper = _FunctionWrapper(obj_func)
@@ -135,30 +154,25 @@ def SDFL(obj_func : ObjectiveFunction, starting_point : Point, starting_step : N
     theta : float64 = param.theta
 
     current_point : Point = starting_point.copy()
-
     func_eval_at_cur_point : float64 = F(current_point)
     prev_dir_res : _DirectionResult = _DirectionResult.FAILURE
 
-    ############ Logging #######################################
     if LOGGING:
-        _sdfl_log.debug("########## SDFL: Start ##########")
-    ############################################################
+        _sdfl_log.debug("#################### SDFL: Start ####################")
 
-    while f_wrapper._evaluations < LIMIT_EVAL: # and max_tentative_step >= LIMIT_STEP:
+    while f_wrapper.evaluations < LIMIT_EVAL and max_tentative_step >= LIMIT_STEP:
         new_point_found : bool = False
-        np.maximum(tentative_step, eta * max_tentative_step, out = tentative_step)
+        _ = np.maximum(tentative_step, eta * max_tentative_step, out = tentative_step)
 
         for i in range(n):
 
             if prev_dir_res != _DirectionResult.FAILURE:
                 func_eval_at_cur_point = F(current_point)
 
-            #### Logging #######################################
             if LOGGING:
                 _sdfl_log.debug(f"x = {current_point}")
                 _sdfl_log.debug(f"F(x) = {func_eval_at_cur_point}")
                 _sdfl_log.debug(f"Step = {tentative_step}\n")
-            ####################################################
 
             dir_res : _DirectionResult
             func_eval_at_direction : float64
@@ -171,21 +185,17 @@ def SDFL(obj_func : ObjectiveFunction, starting_point : Point, starting_step : N
                 new_point_found = True
             prev_dir_res = dir_res
 
-        ######## Logging #######################################
         if LOGGING:
             _sdfl_log.debug(f"New point found: {new_point_found}\n")
-        ########################################################
 
         if new_point_found:
-            np.maximum(accepted_step, tentative_step, out = tentative_step)
+            _ = np.maximum(accepted_step, tentative_step, out = tentative_step)
         else:
             tentative_step *= theta
         max_tentative_step = np.max(tentative_step)
 
-    ############ Logging #######################################
     if LOGGING:
         _sdfl_log.debug(f"Minimum: {current_point}")
-        _sdfl_log.debug("########## SDFL: End ##########\n")
-    ############################################################
+        _sdfl_log.debug("#################### SDFL: End ####################\n")
 
     return current_point
