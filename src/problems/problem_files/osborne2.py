@@ -8,17 +8,9 @@ Created on Fri Oct 16 17:38:11 2020
 import numpy as np
 import numpy.typing as npt
 
-name      : str = "osborne2"
-startp    : npt.NDArray[np.float64] = np.array([1.3, 0.65, 0.65, 0.7, 0.6, 3, 5, 7, 2, 4.5, 5.5], dtype = np.float64)
-lb        : npt.NDArray[np.float64] = startp - 10
-ub        : npt.NDArray[np.float64] = startp + 10
-n         : int = len(lb)
-nint      : int = 5
-ncont     : int = n - nint
-lbmix     : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64);      lbmix[:ncont]     = lb[:ncont]
-ubmix     : npt.NDArray[np.float64] = 100 * np.ones(n, dtype = np.float64); ubmix[:ncont]     = ub[:ncont]
-x_initial : npt.NDArray[np.float64] =  50 * np.ones(n, dtype = np.float64); x_initial[:ncont] = (ub[:ncont] + lb[:ncont]) / 2 
-xmix      : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64)
+name   : str = "osborne2"
+startp : npt.NDArray[np.float64] = np.array([1.3, 0.65, 0.65, 0.7, 0.6, 3, 5, 7, 2, 4.5, 5.5], dtype = np.float64)
+n      : int = startp.size
 
 def feval(x : npt.NDArray[np.float64]) -> np.float64:
     y : npt.NDArray[np.float64] = np.array(
@@ -92,7 +84,8 @@ def feval(x : npt.NDArray[np.float64]) -> np.float64:
         dtype = np.float64
     )
 
-    t = 0.1 * np.arange(0, 65, dtype = np.float64).reshape(65, -1)
+    m : int = y.size
+    t = 0.1 * np.arange(m, dtype = np.float64).reshape(m, -1)
 
     f = y - x[0] * np.exp(-x[4] * t) - x[1] * np.exp(-x[5] * (t - x[8]) ** 2) - x[2] * np.exp(-x[6] * (t - x[9]) ** 2) - x[3] * np.exp(-x[7] * (t - x[10]) ** 2)
     

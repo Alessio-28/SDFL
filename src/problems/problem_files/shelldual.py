@@ -8,19 +8,10 @@ Created on Fri Oct 16 17:38:11 2020
 import numpy as np
 import numpy.typing as npt
 
-name      : str = "shell dual"
-startp    : npt.NDArray[np.float64] = 1e-4 * np.ones(15, dtype = np.float64)
+name   : str = "shell dual"
+n      : int = 15
+startp : npt.NDArray[np.float64] = 1e-4 * np.ones(n, dtype = np.float64)
 startp[6] = 60
-lb        : npt.NDArray[np.float64] = startp - 10
-ub        : npt.NDArray[np.float64] = startp + 10
-n         : int = len(lb)
-nint      : int = 7
-ncont     : int = n - nint
-lbmix     : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64);      lbmix[:ncont]     = lb[:ncont]
-ubmix     : npt.NDArray[np.float64] = 100 * np.ones(n, dtype = np.float64); ubmix[:ncont]     = ub[:ncont]
-x_initial : npt.NDArray[np.float64] =  50 * np.ones(n, dtype = np.float64); x_initial[:ncont] = (ub[:ncont] + lb[:ncont]) / 2 
-xmix      : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64)
-
 
 def feval(x : npt.NDArray[np.float64]) -> np.float64:
     x = x.reshape(-1, 1)
@@ -80,13 +71,11 @@ def feval(x : npt.NDArray[np.float64]) -> np.float64:
     
     ee = np.array([-15, -27, -36, -18, -12], dtype = np.float64)
     
-    J10 = np.arange(1, 11)
-    J5  = np.arange(1, 6)
+    J10 = np.arange(A.shape[0])
+    J5  = np.arange(d.shape[0]) + 10
     
     Q = np.sum(np.minimum(0, x))
-    P = np.matmul(A.T, x[J10-1]) - 2 * C * x[J5 + 10-1] - 3 * d * x[J5 + 10 - 1] ** 2 - ee.T
-    X = np.tile(x[J5 + 10-1], (1, 5))
+    P = np.matmul(A.T, x[J10]) - 2 * C * x[J5] - 3 * d * x[J5] ** 2 - ee.T
+    X = np.tile(x[J5], (1, 5))
     
-    y = 2 * np.abs(np.sum(d * x[J5 + 10 - 1] ** 3)) + np.sum(np.sum(C * X * X.T)) - np.sum(b * x[J10 - 1]) + 100 * (np.sum(np.maximum(0, P)) - Q)
-    return y
-
+    return 2 * np.abs(np.sum(d * x[J5] ** 3)) + np.sum(np.sum(C * X * X.T)) - np.sum(b * x[J10]) + 100 * (np.sum(np.maximum(0, P)) - Q)

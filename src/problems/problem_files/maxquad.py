@@ -8,20 +8,12 @@ Created on Fri Oct 16 17:38:11 2020
 import numpy as np
 import numpy.typing as npt
 
-name      : str = "maxquad"
-startp    : npt.NDArray[np.float64] = np.zeros(10, dtype = np.float64)
-lb        : npt.NDArray[np.float64] = startp - 10
-ub        : npt.NDArray[np.float64] = startp + 10
-n         : int = len(lb)
-nint      : int = 5
-ncont     : int = n - nint
-lbmix     : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64);      lbmix[:ncont]     = lb[:ncont]
-ubmix     : npt.NDArray[np.float64] = 100 * np.ones(n, dtype = np.float64); ubmix[:ncont]     = ub[:ncont]
-x_initial : npt.NDArray[np.float64] =  50 * np.ones(n, dtype = np.float64); x_initial[:ncont] = (ub[:ncont] + lb[:ncont]) / 2 
-xmix      : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64)
+name   : str = "maxquad"
+n      : int = 10
+startp : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64)
 
 def feval(x : npt.NDArray[np.float64]) -> np.float64:
-    j = np.arange(1, 11, dtype = np.float64).reshape(-1,1)
+    j = np.arange(1, n + 1, dtype = np.float64).reshape(-1,1)
     JK = np.triu(np.matmul(j, j.T), 1) + np.triu(np.matmul(j, j.T), 1).T
     JonK = np.triu(np.matmul(j, (j ** (-1)).T), 1) + np.triu(np.matmul(j, (j ** (-1)).T), 1).T
     A1 = np.exp(JonK) * np.cos(JK) * np.sin(1); A1 += np.diag(np.squeeze(j / 10 * np.sin(1) + np.sum(np.sum(np.abs(A1)))))

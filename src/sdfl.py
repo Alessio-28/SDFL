@@ -4,26 +4,46 @@ from numpy.typing import NDArray
 from collections.abc import Callable
 from typing import cast
 from enum import Enum
+
 import logging
+from logging.handlers import QueueHandler, QueueListener
+from os import mkdir
+from os.path import exists, isdir
+from queue import Queue
 
 LOGGING : bool = False
-LOG_PATH : str = "./log"
+LOG_DIR : str = "log"
 LOG_FILE : str = "sdfl.log"
 MODE : str = "a"
+LEVEL = logging.INFO 
 
-_fh : logging.FileHandler 
 _sdfl_log : logging.Logger
+_sdfl_listener : QueueListener
 
 def _setup_logging() -> None:
-    global _fh
     global _sdfl_log
+    global _sdfl_listener
 
-    _fh = logging.FileHandler(filename = f"{LOG_PATH}/{LOG_FILE}", mode = MODE) # emit()
-    _fh.setLevel(logging.DEBUG)
+    if not (exists(LOG_DIR) and isdir(LOG_DIR)):
+        mkdir(LOG_DIR)
+
+    queue : Queue[logging.LogRecord] = Queue(-1)
+
+    sdfl_fh : logging.FileHandler  = logging.FileHandler(filename = f"./{LOG_DIR}/{LOG_FILE}", mode = MODE)
+    sdfl_fh.setLevel(LEVEL)
+
+    _sdfl_listener = QueueListener(queue, sdfl_fh)
 
     _sdfl_log = logging.getLogger(name = __name__)
-    _sdfl_log.setLevel(logging.DEBUG)
-    _sdfl_log.addHandler(_fh)
+    _sdfl_log.setLevel(LEVEL)
+    _sdfl_log.addHandler(QueueHandler(queue))
+
+    logging._srcfile = None # pyright: ignore[reportPrivateUsage]
+    logging.logProcesses = False
+    logging.logThreads = False
+    logging.logMultiprocessing = False
+
+    # np.set_printoptions(precision = 4, suppress = True)
 
 type Point = NDArray[float64]
 type ObjectiveFunction = Callable[[Point], float64]
@@ -54,11 +74,11 @@ class Parameters:
             )
             raise ValueError(str_error)
 
-        self.theta    = theta
-        self.gamma    = gamma
-        self.c        = c
-        self.eta      = eta
-        self.epsilon  = epsilon
+        self.theta   = theta
+        self.gamma   = gamma
+        self.c       = c
+        self.eta     = eta
+        self.epsilon = epsilon
 
 
 class _FunctionWrapper:
@@ -158,21 +178,19 @@ def SDFL(obj_func : ObjectiveFunction, starting_point : Point, starting_step : N
     prev_dir_res : _DirectionResult = _DirectionResult.FAILURE
 
     if LOGGING:
-        _sdfl_log.debug("#################### SDFL: Start ####################")
+        _sdfl_listener.start()
+        _sdfl_log.info("#################### SDFL: Start ####################")
 
     while f_wrapper.evaluations < LIMIT_EVAL and max_tentative_step >= LIMIT_STEP:
         new_point_found : bool = False
         _ = np.maximum(tentative_step, eta * max_tentative_step, out = tentative_step)
 
         for i in range(n):
-
             if prev_dir_res != _DirectionResult.FAILURE:
                 func_eval_at_cur_point = F(current_point)
 
             if LOGGING:
-                _sdfl_log.debug(f"x = {current_point}")
-                _sdfl_log.debug(f"F(x) = {func_eval_at_cur_point}")
-                _sdfl_log.debug(f"Step = {tentative_step}\n")
+                _sdfl_log.info(f"x = %s\nF(x) = %g\nStep = %s\n", current_point, func_eval_at_cur_point, tentative_step)
 
             dir_res : _DirectionResult
             func_eval_at_direction : float64
@@ -186,7 +204,7 @@ def SDFL(obj_func : ObjectiveFunction, starting_point : Point, starting_step : N
             prev_dir_res = dir_res
 
         if LOGGING:
-            _sdfl_log.debug(f"New point found: {new_point_found}\n")
+            _sdfl_log.info("New point found: %s\n", new_point_found)
 
         if new_point_found:
             _ = np.maximum(accepted_step, tentative_step, out = tentative_step)
@@ -195,7 +213,7 @@ def SDFL(obj_func : ObjectiveFunction, starting_point : Point, starting_step : N
         max_tentative_step = np.max(tentative_step)
 
     if LOGGING:
-        _sdfl_log.debug(f"Minimum: {current_point}")
-        _sdfl_log.debug("#################### SDFL: End ####################\n")
+        _sdfl_log.info(f"Minimum: %s\n#################### SDFL: End ####################\n", current_point)
+        _sdfl_listener.stop()
 
     return current_point

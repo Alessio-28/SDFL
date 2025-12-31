@@ -8,17 +8,9 @@ Created on Fri Oct 16 17:38:11 2020
 import numpy as np
 import numpy.typing as npt
 
-name      : str = "kowalik-osborne"
-startp    : npt.NDArray[np.float64] = np.array([0.25, 0.39, 0.415, 0.39], dtype = np.float64)
-lb        : npt.NDArray[np.float64] = startp - 10
-ub        : npt.NDArray[np.float64] = startp + 10
-n         : int = len(lb)
-nint      : int = 2
-ncont     : int = n - nint
-lbmix     : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64);      lbmix[:ncont]     = lb[:ncont]
-ubmix     : npt.NDArray[np.float64] = 100 * np.ones(n, dtype = np.float64); ubmix[:ncont]     = ub[:ncont]
-x_initial : npt.NDArray[np.float64] =  50 * np.ones(n, dtype = np.float64); x_initial[:ncont] = (ub[:ncont] + lb[:ncont]) / 2 
-xmix      : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64)
+name   : str = "kowalik-osborne"
+startp : npt.NDArray[np.float64] = np.array([0.25, 0.39, 0.415, 0.39], dtype = np.float64)
+n      : int = startp.size
 
 def feval(x : npt.NDArray[np.float64]) -> np.float64:
     z : npt.NDArray[np.float64] = np.array(
@@ -37,7 +29,7 @@ def feval(x : npt.NDArray[np.float64]) -> np.float64:
         ],
         dtype = np.float64
     )
-    u : npt.NDArray[np.float64] = z[:,1]
-    f : npt.NDArray[np.float64] = (x[0] * (u ** 2 + x[1] * u)) / (u ** 2 + x[2] * u + x[3]) - z[:,0]
-    y : np.float64 = np.max(np.abs(f));
-    return y
+    u : npt.NDArray[np.float64] = z[:, 1]
+    f : npt.NDArray[np.float64] = (x[0] * (u ** 2 + x[1] * u)) / (u ** 2 + x[2] * u + x[3]) - z[:, 0]
+
+    return np.max(np.abs(f))

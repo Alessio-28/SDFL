@@ -8,17 +8,9 @@ Created on Fri Oct 16 17:38:11 2020
 import numpy as np
 import numpy.typing as npt
 
-name      : str = "tr48"
-startp    : npt.NDArray[np.float64] = np.zeros(48, dtype = np.float64)
-lb        : npt.NDArray[np.float64] = startp - 10
-ub        : npt.NDArray[np.float64] = startp + 10
-n         : int = len(lb)
-nint      : int = 24
-ncont     : int = n - nint
-lbmix     : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64);      lbmix[:ncont]     = lb[:ncont]
-ubmix     : npt.NDArray[np.float64] = 100 * np.ones(n, dtype = np.float64); ubmix[:ncont]     = ub[:ncont]
-x_initial : npt.NDArray[np.float64] =  50 * np.ones(n, dtype = np.float64); x_initial[:ncont] = (ub[:ncont] + lb[:ncont]) / 2 
-xmix      : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64)
+name   : str = "tr48"
+n      : int = 48
+startp : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64)
 
 
 def feval(x : npt.NDArray[np.float64]) -> np.float64:
@@ -181,8 +173,7 @@ def feval(x : npt.NDArray[np.float64]) -> np.float64:
             1718,     1475,      781,     1600,      875,      264,      138,      177,      738,      595,     1472,      592,      514,      303,     1326,     1508,      898,      354,     1828,     1042,     1403,      567,      928,      998,      641,     1038,     2336,      603,      923,     1212,      861,      739,     1187,      194,     1021,      220,     2044,      268,     2281,      519,      796,     1835,     1553,     2435,     2238,     2010,   100000,     1157, 
              604,      335,      678,      930,      552,     1398,     1023,     1327,      945,      853,      588,      598,      661,      853,      236,      550,      396,      813,      674,      741,      442,      591,      921,      216,      676,      231,     1266,      582,      341,     1176,      626,      515,      548,     1231,      352,     1163,      932,      917,     1531,      972,      361,      917,      486,     1461,     1560,     1353,     1157,   100000 ],
         dtype = np.float64
-    ).reshape(48, -1)
+    ).reshape(n, -1)
     
-    X = np.tile(x, (1, 48))
-    return np.sum(d * np.max(X - A, axis = 0).reshape(48, 1)) - np.sum(s * x)
+    return np.sum(d * np.max(np.tile(x, (1, n)) - A, axis = 0).reshape(n, 1)) - np.sum(s * x)
 

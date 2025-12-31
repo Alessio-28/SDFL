@@ -1,7 +1,9 @@
 import numpy as np
 from time import time
+
 import logging
-import os
+from os import mkdir
+from os.path import exists, isdir
 
 from . import sdfl
 from .problems import problems
@@ -10,34 +12,39 @@ LIMIT_EVAL : int = 1_000_000
 LIMIT_STEP : np.float64 = np.float64(1e-8)
 
 LOGGING : bool = False
-LOG_PATH : str = "./log"
+LOG_DIR : str = "log"
 LOG_FILE : str = "sdfl.log"
 MODE : str = "a"
+LEVEL = logging.INFO 
 
-main_fh : logging.FileHandler
-main_log : logging.Logger
-
+_main_log : logging.Logger
 
 def setup_logging() -> None:
-    global main_fh
-    global main_log
+    global _main_log
 
-    if not (os.path.exists(LOG_PATH) and os.path.isdir(LOG_PATH)):
-        os.mkdir(LOG_PATH)
+    if not (exists(LOG_DIR) and isdir(LOG_DIR)):
+        mkdir(LOG_DIR)
 
-    main_fh = logging.FileHandler(filename = f"{LOG_PATH}/{LOG_FILE}", mode = MODE)
-    main_fh.setLevel(logging.DEBUG)
+    main_fh : logging.FileHandler = logging.FileHandler(filename = f"./{LOG_DIR}/{LOG_FILE}", mode = MODE)
+    main_fh.setLevel(LEVEL)
 
-    main_log = logging.getLogger(name = __name__)
-    main_log.setLevel(logging.DEBUG)
-    main_log.addHandler(main_fh)
-
+    _main_log = logging.getLogger(name = __name__)
+    _main_log.setLevel(LEVEL)
+    _main_log.addHandler(main_fh)
+    
     sdfl.LOGGING = True
-    sdfl.LOG_PATH = LOG_PATH
+    sdfl.LOG_DIR = LOG_DIR
     sdfl.LOG_FILE = LOG_FILE
     sdfl.MODE = MODE
+    sdfl.LEVEL = LEVEL
 
-    sdfl._setup_logging()
+    logging._srcfile = None # pyright: ignore[reportPrivateUsage]
+    logging.logProcesses = False
+    logging.logThreads = False
+    logging.logMultiprocessing = False
+
+    # np.set_printoptions(precision = 4, suppress = True)
+    sdfl._setup_logging() # pyright: ignore[reportPrivateUsage]
 
 
 # def run(functions : list[str], starting_point : sdfl.Point | None = None, starting_step : npt.NDArray[np.float64] | None = None, param : sdfl.Parameters | None = None, limit_eval : int = LIMIT_EVAL, limit_step : np.float64 = LIMIT_STEP) -> None:
@@ -62,20 +69,13 @@ def test(name : str, obj_func : sdfl.ObjectiveFunction, dim : int, starting_poin
     starting_step = np.array([1] * dim, dtype = np.float64)
 
     if LOGGING:
-        main_log.debug(f"Algorithm: {name}")
+        _main_log.info(f"Algorithm: %s", name)
 
     start = time()
     minimum = sdfl.SDFL(obj_func, starting_point, starting_step, param, limit_eval, limit_step)
     end = time()
 
     if LOGGING:
-        main_log.debug(f"Algorithm: {name}")
-        main_log.debug(f"Time: {end - start:0.3f}")
-        main_log.debug(f"Start: {starting_point}")
-        main_log.debug(f"Min: {minimum}")
+        _main_log.info(f"Algorithm: %s\nTime: %0.3f\nStart: %s\nMin: %s", name, end - start, starting_point, minimum)
 
-    print(f"Funzione:       {name}")
-    print(f"Time:           {end - start:0.3f}")
-    print(f"Punto iniziale: {starting_point}")
-    print(f"Minimo trovato: {minimum}")
-    print()
+    print(f"Funzione:       {name}\nTime:           {end - start:0.3f}\nPunto iniziale: {starting_point}\nMinimo trovato: {minimum}\n")
