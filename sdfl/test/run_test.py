@@ -33,7 +33,7 @@ def run(name: str, obj_fun: ObjectiveFunction, data: SDFLData, verbose: bool = F
         setup_test_logging(test_logger)
         test_logger.info(f"Function: %s", name)
 
-    result = SDFL(obj_fun, data.starting_point, data.starting_step, data.params, data.limit_eval, data.limit_step, verbose)
+    result = SDFL(obj_fun, data.starting_point, data.starting_step, data.params, data.max_eval, data.min_step, verbose)
 
     if not verbose:
-        print(f"Function: {name}\nResult: {result}")
+        print(f"Function: {name}\nResult:\n{result}")

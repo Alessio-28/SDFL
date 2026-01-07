@@ -35,16 +35,16 @@ DATA_JSON: str = "data.json"
 class SDFLData:
     starting_point: Point
     starting_step: npt.NDArray[np.float64]
-    limit_eval: int
-    limit_step: np.float64
+    max_eval: int
+    min_step: np.float64
     params: Parameters
 
     def __init__(self: SDFLData, starting_point: Point = DEFAULT_STARTING_POINT, starting_step: npt.NDArray[np.float64] = DEFAULT_STARTING_STEP, limit_eval: int = DEFAULT_MAX_EVAL, limit_step: np.float64 = DEFAULT_MIN_STEP, params: Parameters = DEFAULT_PARAMS) -> None:
         _check_sdfl_arguments_requirements(starting_point, starting_step, limit_eval, limit_step)
         self.starting_point = starting_point
         self.starting_step = starting_step
-        self.limit_eval = limit_eval
-        self.limit_step = limit_step
+        self.max_eval = limit_eval
+        self.min_step = limit_step
         self.params = params
 
     @staticmethod
@@ -52,8 +52,8 @@ class SDFLData:
         return {
             KEY_STARTING_POINT: data.starting_point.tolist(),
             KEY_STARTING_STEP: data.starting_step.tolist(),
-            KEY_MAX_EVAL: data.limit_eval,
-            KEY_MIN_STEP: data.limit_step,
+            KEY_MAX_EVAL: data.max_eval,
+            KEY_MIN_STEP: data.min_step,
             KEY_THETA: data.params.theta,
             KEY_GAMMA: data.params.gamma,
             KEY_C: data.params.c,

@@ -54,6 +54,7 @@ def _compute_direction(obj_fun: ObjectiveFunction, point: Point, fun_eval_at_poi
     # Try POSITIVE direction
     point[index] = elem + step_size
     fun_eval_at_direction: np.float64 = obj_fun(point)
+
     if fun_eval_at_direction > F_bound:
         # Try NEGATIVE direction
         point[index] = elem - step_size
@@ -92,8 +93,8 @@ def _line_search(obj_fun: ObjectiveFunction, point: Point, fun_eval_at_point: np
 
     return step_size * iter2
 
-def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, starting_step: npt.NDArray[np.float64], param: Parameters, limit_eval: int, limit_step: np.float64, verbose: bool = False) -> SDFLResult:
-    _check_sdfl_arguments_requirements(starting_point, starting_step, limit_eval, limit_step)
+def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, starting_step: npt.NDArray[np.float64], param: Parameters, max_eval: int, min_step: np.float64, verbose: bool = False) -> SDFLResult:
+    _check_sdfl_arguments_requirements(starting_point, starting_step, max_eval, min_step)
 
     n: int = starting_point.size
 
@@ -118,7 +119,7 @@ def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, starting_step: npt.N
         sdfl_logger.info("x = %s\nF(x) = %g\nStep = %s\n", current_point, fun_eval_at_cur_point, tentative_step)
 
     try:
-        while f_wrapper.nfev < limit_eval and max_tentative_step >= limit_step:
+        while f_wrapper.nfev < max_eval and max_tentative_step >= min_step:
             new_point_found: bool = False
             np.maximum(tentative_step, eta * max_tentative_step, out = tentative_step)
 

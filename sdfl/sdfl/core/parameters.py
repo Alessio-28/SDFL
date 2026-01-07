@@ -1,13 +1,19 @@
 import numpy as np
 
-from .._utils._sdfl_requirements import _are_parameters_in_range
-
 _THETA_LOWER_BOUND: int = 0
 _THETA_UPPER_BOUND: int = 1
 _GAMMA_LOWER_BOUND: int = 2
 _C_LOWER_BOUND: int = 0
 _ETA_LOWER_BOUND: int = 0
 _EPSILON_LOWER_BOUND: int = 0
+
+def _are_parameters_in_range(theta: np.float64, gamma: np.float64, c: np.float64, eta: np.float64, epsilon: np.float64) -> bool:
+    return (theta <= _THETA_LOWER_BOUND or
+            theta >= _THETA_UPPER_BOUND or
+            gamma <= _GAMMA_LOWER_BOUND or
+            c <= _C_LOWER_BOUND or
+            eta <= _ETA_LOWER_BOUND or
+            epsilon <= _EPSILON_LOWER_BOUND) # pyright: ignore[reportReturnType]
 
 class Parameters:
     theta: np.float64   # in (0, 1)
