@@ -9,8 +9,8 @@ import numpy as np
 import numpy.typing as npt
 
 name: str = "rosen-suzuki"
-startin_point: npt.NDArray[np.float64] = np.array([0, 0, 0, 0], dtype = np.float64)
-n: int = startin_point.size
+starting_point: npt.NDArray[np.float64] = np.array([0, 0, 0, 0], dtype = np.float64)
+n: int = starting_point.size
 
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:

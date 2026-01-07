@@ -8,8 +8,8 @@ Created on Fri Oct 16 17:38:11 2020
 import numpy as np
 import numpy.typing as npt
 
-startin_point: npt.NDArray[np.float64] = np.concatenate([np.array(np.arange(1, 21, dtype = np.float64)), np.array(np.arange(-21, -41, -1, dtype = np.float64))])
-n: int = startin_point.size
+starting_point: npt.NDArray[np.float64] = np.concatenate([np.array(np.arange(1, 21, dtype = np.float64)), np.array(np.arange(-21, -41, -1, dtype = np.float64))])
+n: int = starting_point.size
 name: str = f"maxq({n})"
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:

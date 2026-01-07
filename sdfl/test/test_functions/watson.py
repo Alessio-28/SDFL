@@ -10,7 +10,7 @@ import numpy.typing as npt
 
 name   : str = "watson"
 n      : int = 20
-startp : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64)
+starting_point : npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64)
 
 def feval(x : npt.NDArray[np.float64]) -> np.float64:
     x = x.reshape(-1, 1)

@@ -10,7 +10,7 @@ import numpy.typing as npt
 
 name: str = "l1hilb"
 n: int = 50
-startin_point: npt.NDArray[np.float64] = np.ones(n, dtype = np.float64)
+starting_point: npt.NDArray[np.float64] = np.ones(n, dtype = np.float64)
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
     i: npt.NDArray[np.float64] = np.arange(1, n + 1, dtype = np.float64)

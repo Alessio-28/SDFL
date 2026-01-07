@@ -16,7 +16,7 @@ import numpy.typing as npt
 
 name: str = "SO-I prob. 16"
 n: int = 8
-startin_point: npt.NDArray[np.float64] = np.ones(n, dtype = np.float64) 
+starting_point: npt.NDArray[np.float64] = np.ones(n, dtype = np.float64) 
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
     return 3.1 * x[0] ** 2 + 7.6 * x[1] ** 2 + 6.9 * x[2] ** 2 + 0.004 * x[3] ** 2 + 19 * x[4] ** 2 + 3 * x[5] ** 2 + x[6] ** 2 + 4 * x[7] ** 2

@@ -9,8 +9,8 @@ import numpy as np
 import numpy.typing as npt
 
 name: str = "gamma"
-startin_point: npt.NDArray[np.float64] = np.array([1, 1, 10, 1], dtype = np.float64)
-n: int = startin_point.size
+starting_point: npt.NDArray[np.float64] = np.array([1, 1, 10, 1], dtype = np.float64)
+n: int = starting_point.size
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
     t: npt.NDArray[np.float64] = np.array(

@@ -51,7 +51,7 @@ def get_problems() -> dict[str, str]:
     if _problems is not None:
         return _problems
     _problems = {}
-    for file in os.listdir(pathlib.PurePath(_TEST_FUNCTION_MODULE.replace(".", "/", count = 1))):
+    for file in os.listdir(pathlib.PurePath(_TEST_FUNCTION_MODULE.replace(".", "/"))):
         filename = file.split(".")
         if len(filename) == 2 and filename[1] == "py":
             module = importlib.import_module(f"{_TEST_FUNCTION_MODULE}.{filename[0]}")

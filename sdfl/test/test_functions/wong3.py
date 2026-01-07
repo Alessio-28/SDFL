@@ -9,8 +9,8 @@ import numpy as np
 import numpy.typing as npt
 
 name: str = "wong3"
-startin_point: npt.NDArray[np.float64] = np.array([2, 3, 5, 5, 1, 2, 7, 3, 6, 10, 2, 2, 6, 15, 1, 2, 1, 2, 1, 3], dtype = np.float64)
-n: int = startin_point.size
+starting_point: npt.NDArray[np.float64] = np.array([2, 3, 5, 5, 1, 2, 7, 3, 6, 10, 2, 2, 6, 15, 1, 2, 1, 2, 1, 3], dtype = np.float64)
+n: int = starting_point.size
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
     x = x.reshape(-1, 1)

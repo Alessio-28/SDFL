@@ -10,7 +10,7 @@ import numpy.typing as npt
 
 name: str = "polak 3"
 n: int = 11
-startin_point: npt.NDArray[np.float64] = np.ones(n, dtype = np.float64)
+starting_point: npt.NDArray[np.float64] = np.ones(n, dtype = np.float64)
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
     J = np.tile(np.arange(n, dtype = np.float64).reshape(-1, 1), (1, n - 1))

@@ -10,8 +10,8 @@ import numpy.typing as npt
 
 name: str = "shell dual"
 n: int = 15
-startin_point: npt.NDArray[np.float64] = 1e-4 * np.ones(n, dtype = np.float64)
-startin_point[6] = 60
+starting_point: npt.NDArray[np.float64] = 1e-4 * np.ones(n, dtype = np.float64)
+starting_point[6] = 60
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
     x = x.reshape(-1, 1)

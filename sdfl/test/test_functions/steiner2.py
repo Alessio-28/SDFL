@@ -34,7 +34,7 @@ xbar[m] = (aa[0, 1] + aa[1, 1]) / 3
 xbar[j + m - 1] = (xbar[j - 2 + m] + aa[j - 1, 1] + aa[j, 1]) / 3
 xbar[2 * m - 1] = (xbar[2 * m - 2] + aa[m - 1, 1] - 1) / 3
 
-startin_point: npt.NDArray[np.float64] = xbar
+starting_point: npt.NDArray[np.float64] = xbar
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
     x = x.reshape(-1, 1)

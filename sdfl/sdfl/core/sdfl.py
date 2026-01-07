@@ -7,7 +7,7 @@ import logging
 from .typing import Point, ObjectiveFunction
 from .parameters import Parameters, _compute_bound_coeff, _compute_bound
 from .._utils._logging import _enable_default_logging, _disable_default_logging
-from .._utils._check_requirements import _check_requirements
+from .._utils._sdfl_requirements import _check_sdfl_arguments_requirements
 
 sdfl_logger: logging.Logger = logging.getLogger(__name__)
 
@@ -93,12 +93,7 @@ def _line_search(obj_fun: ObjectiveFunction, point: Point, fun_eval_at_point: np
     return step_size * iter2
 
 def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, starting_step: npt.NDArray[np.float64], param: Parameters, limit_eval: int, limit_step: np.float64, verbose: bool = False) -> SDFLResult:
-    if len(starting_point.shape) != 1:
-        raise ValueError("starting_point must be a 1-dimensional array")
-    if len(starting_step.shape) != 1:
-        raise ValueError("starting_step must be a 1-dimensional array")
-    if starting_point.size != starting_step.size:
-        raise ValueError("starting_point and starting_step must have the same dimension")
+    _check_sdfl_arguments_requirements(starting_point, starting_step, limit_eval, limit_step)
 
     n: int = starting_point.size
 

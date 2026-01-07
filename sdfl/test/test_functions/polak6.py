@@ -10,7 +10,7 @@ import numpy.typing as npt
 
 name: str = "polak 6"
 n: int = 4
-startin_point: npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64)
+starting_point: npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64)
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
     f = np.zeros(n, dtype = np.float64)

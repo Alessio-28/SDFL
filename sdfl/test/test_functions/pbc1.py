@@ -9,8 +9,8 @@ import numpy as np
 import numpy.typing as npt
 
 name: str = "pbc1"
-startin_point: npt.NDArray[np.float64] = np.array([0, -1, 10, 1, 10], dtype = np.float64)
-n: int = startin_point.size
+starting_point: npt.NDArray[np.float64] = np.array([0, -1, 10, 1, 10], dtype = np.float64)
+n: int = starting_point.size
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
     t = -1 + (2 / 29) * np.arange(30, dtype = np.float64)

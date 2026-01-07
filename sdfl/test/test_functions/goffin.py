@@ -10,7 +10,7 @@ import numpy.typing as npt
 
 name: str = "goffin"
 starting_point: npt.NDArray[np.float64] = np.arange(1, 51, dtype = np.float64) - 25.5
-n: int = startin_point.size
+n: int = starting_point.size
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
     f: npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64)

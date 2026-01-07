@@ -10,7 +10,7 @@ import numpy.typing as npt
 
 name: str = "gill"
 n: int = 10
-startin_point: npt.NDArray[np.float64] = -0.1 * np.ones(n, dtype = np.float64)
+starting_point: npt.NDArray[np.float64] = -0.1 * np.ones(n, dtype = np.float64)
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
     fx: npt.NDArray[np.float64] = np.zeros(3, dtype = np.float64)
