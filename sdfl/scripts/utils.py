@@ -10,8 +10,8 @@ from ..sdfl._utils._sdfl_requirements import _check_sdfl_arguments_requirements
 _N: int = 2
 DEFAULT_STARTING_POINT: Point = np.array([1] * _N, dtype = np.float64)
 DEFAULT_STARTING_STEP: npt.NDArray[np.float64] = np.array([1] * _N, dtype = np.float64)
-DEFAULT_LIMIT_EVAL: int = 10_000
-DEFAULT_LIMIT_STEP: np.float64 = np.float64(1e-8)
+DEFAULT_MAX_EVAL: int = 10_000
+DEFAULT_MIN_STEP: np.float64 = np.float64(1e-8)
 DEFAULT_THETA: np.float64 = np.float64(0.5)
 DEFAULT_GAMMA: np.float64 = np.float64(2.5)
 DEFAULT_C: np.float64 = np.float64(1)
@@ -22,15 +22,13 @@ DEFAULT_PARAMS: Parameters = Parameters(DEFAULT_THETA, DEFAULT_GAMMA, DEFAULT_C,
 
 KEY_STARTING_POINT: str = "starting_point"
 KEY_STARTING_STEP: str = "starting_step"
-KEY_LIMIT_EVAL: str = "limit_eval"
-KEY_LIMIT_STEP: str = "limit_step"
+KEY_MAX_EVAL: str = "max_eval"
+KEY_MIN_STEP: str = "min_step"
 KEY_THETA: str = "theta"
 KEY_GAMMA: str = "gamma"
 KEY_C: str = "c"
 KEY_ETA: str = "eta"
 KEY_EPSILON: str = "epsilon"
-
-KEY_PARAMS: str = "params"
 
 DATA_JSON: str = "data.json"
 
@@ -41,7 +39,7 @@ class SDFLData:
     limit_step: np.float64
     params: Parameters
 
-    def __init__(self: SDFLData, starting_point: Point = DEFAULT_STARTING_POINT, starting_step: npt.NDArray[np.float64] = DEFAULT_STARTING_STEP, limit_eval: int = DEFAULT_LIMIT_EVAL, limit_step: np.float64 = DEFAULT_LIMIT_STEP, params: Parameters = DEFAULT_PARAMS) -> None:
+    def __init__(self: SDFLData, starting_point: Point = DEFAULT_STARTING_POINT, starting_step: npt.NDArray[np.float64] = DEFAULT_STARTING_STEP, limit_eval: int = DEFAULT_MAX_EVAL, limit_step: np.float64 = DEFAULT_MIN_STEP, params: Parameters = DEFAULT_PARAMS) -> None:
         _check_sdfl_arguments_requirements(starting_point, starting_step, limit_eval, limit_step)
         self.starting_point = starting_point
         self.starting_step = starting_step
@@ -52,35 +50,35 @@ class SDFLData:
     @staticmethod
     def to_dict(data: SDFLData) -> dict[str, Any]:
         return {
-            KEY_STARTING_POINT: data.starting_point,
-            KEY_STARTING_STEP: data.starting_step,
-            KEY_LIMIT_EVAL: data.limit_eval,
-            KEY_LIMIT_STEP: data.limit_step,
-            KEY_PARAMS: data.params
+            KEY_STARTING_POINT: data.starting_point.tolist(),
+            KEY_STARTING_STEP: data.starting_step.tolist(),
+            KEY_MAX_EVAL: data.limit_eval,
+            KEY_MIN_STEP: data.limit_step,
+            KEY_THETA: data.params.theta,
+            KEY_GAMMA: data.params.gamma,
+            KEY_C: data.params.c,
+            KEY_ETA: data.params.eta,
+            KEY_EPSILON: data.params.epsilon
         }
 
     @classmethod
     def to_sdfl_data(cls, data_dict: dict[str, Any]) -> SDFLData:
         return cls(
-            data_dict[KEY_STARTING_POINT],
-            data_dict[KEY_STARTING_STEP],
-            data_dict[KEY_LIMIT_EVAL],
-            data_dict[KEY_LIMIT_STEP],
-            data_dict[KEY_PARAMS],
+            np.array(data_dict[KEY_STARTING_POINT], dtype = np.float64),
+            np.array(data_dict[KEY_STARTING_STEP], dtype = np.float64),
+            int(data_dict[KEY_MAX_EVAL]),
+            np.float64(data_dict[KEY_MIN_STEP]),
+            Parameters(
+                data_dict[KEY_THETA],
+                data_dict[KEY_GAMMA],
+                data_dict[KEY_C],
+                data_dict[KEY_ETA],
+                data_dict[KEY_EPSILON]
+            )
         )
 
 def export_data(data: SDFLData) -> None:
-    data_dict: dict[str, int | np.float64 | npt.NDArray[np.float64]] = {
-        KEY_STARTING_POINT: data.starting_point.tolist(),
-        KEY_STARTING_STEP: data.starting_step.tolist(),
-        KEY_LIMIT_EVAL: data.limit_eval,
-        KEY_LIMIT_STEP: data.limit_step,
-        KEY_THETA: data.params.theta,
-        KEY_GAMMA: data.params.gamma,
-        KEY_C: data.params.c,
-        KEY_ETA: data.params.eta,
-        KEY_EPSILON: data.params.epsilon,
-    }
+    data_dict = SDFLData.to_dict(data)
     with open(DATA_JSON, "w") as p:
         json.dump(data_dict, p, indent = 4, separators = (",", ": "))
 
@@ -88,24 +86,12 @@ def import_data() -> SDFLData:
     try:
         with open(DATA_JSON, "r") as p:
             data_dict = json.load(p)
-        data: SDFLData = SDFLData(
-            np.array(data_dict[KEY_STARTING_POINT], dtype = np.float64),
-            np.array(data_dict[KEY_STARTING_STEP], dtype = np.float64),
-            int(data_dict[KEY_LIMIT_EVAL]),
-            np.float64(data_dict[KEY_LIMIT_STEP]),
-            Parameters(
-                np.float64(data_dict[KEY_THETA]),
-                np.float64(data_dict[KEY_GAMMA]),
-                np.float64(data_dict[KEY_C]),
-                np.float64(data_dict[KEY_ETA]),
-                np.float64(data_dict[KEY_EPSILON])
-            )
-        )
+        data = SDFLData.to_sdfl_data(data_dict)
         return data
     except OSError:
-        return _create_default_data_json()
+        return create_default_data_json()
 
-def _create_default_data_json() -> SDFLData:
+def create_default_data_json() -> SDFLData:
     data: SDFLData = SDFLData()
     export_data(data)
     return data

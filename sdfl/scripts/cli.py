@@ -2,14 +2,14 @@ import argparse as ap
 import numpy as np
 
 from ..test import run_test, problems
-from .utils import SDFLData, import_data, export_data, DATA_JSON
+from .utils import *
 from ..sdfl.core import parameters
 
 def cli() -> None:
-    usage: str = "%(prog)s [-h] [-l] [-f F [F ...] [-x X [X ...]] [-s S [S ...]] [--max-eval MAX] [--min-step MIN] [--params P P P P P] [-v]]"
+    usage: str = "%(prog)s [-h] [-l] [-j] [-f F [F ...] [-x X [X ...]] [-s S [S ...]] [--max-eval MAX] [--min-step MIN] [--params P P P P P] [-v]]"
     parser: ap.ArgumentParser = ap.ArgumentParser(usage = usage, formatter_class = ap.RawTextHelpFormatter)
 
-    set_parser_list_group(parser)
+    set_parser_utils_group(parser)
     set_parser_run_group(parser)
 
     args: ap.Namespace = parser.parse_args()
@@ -18,6 +18,8 @@ def cli() -> None:
 def check_arguments(parser: ap.ArgumentParser, args: ap.Namespace) -> None:
     if args.list_test_functions:
         problems.print_problem_names()
+    if args.create_json:
+        create_default_data_json()
     if args.F:
         (functions, unavailable) = check_input_functions(args.F)
         if len(unavailable) > 0:
@@ -45,28 +47,33 @@ def check_data(args: ap.Namespace) -> SDFLData:
 
     if args.X or args.S or args.MAX or args.MIN or args.P:
         if args.X:
-            data_dict["starting_point"] = np.array(args.X, dtype = np.float64)
+            data_dict[KEY_STARTING_POINT] = np.array(args.X, dtype = np.float64)
         if args.S:
-            data_dict["starting_step"] = np.array(args.S, dtype = np.float64)
+            data_dict[KEY_STARTING_STEP] = np.array(args.S, dtype = np.float64)
         if args.MAX:
-            data_dict["limit_eval"] = args.MAX
+            data_dict[KEY_MAX_EVAL] = int(args.MAX[0])
         if args.MIN:
-            data_dict["limit_step"] = args.MIN
+            data_dict[KEY_MIN_STEP] = np.float64(args.MIN[0])
         if args.P:
-            data_dict["params"] = args.P
+            data_dict[KEY_THETA] = args.P[0]
+            data_dict[KEY_GAMMA] = args.P[1]
+            data_dict[KEY_C] = args.P[2]
+            data_dict[KEY_ETA] = args.P[3]
+            data_dict[KEY_EPSILON] = args.P[4]
 
         data = SDFLData.to_sdfl_data(data_dict)
         export_data(data)
     return data
 
-def set_parser_list_group(parser: ap.ArgumentParser) -> None:
-    list_group = parser.add_argument_group(title = "list")
-    list_group.add_argument("-l", "--list-test-functions", action = "store_true", help = "Prints available test functions.")
+def set_parser_utils_group(parser: ap.ArgumentParser) -> None:
+    parser.add_argument("-l", "--list-test-functions", action = "store_true", help = "Prints available test functions.")
+    parser.add_argument("-j", "--create-json", action = "store_true", help = f"Creates default {DATA_JSON}")
 
 def set_parser_run_group(parser: ap.ArgumentParser) -> None:
     description: str = (
-        f"The following values can also be written in {DATA_JSON} except for -f and -v.\n"
-        "Values of then previous run of the program are saved in that same file."
+        f"The following values can also be written in {DATA_JSON}, except for -f and -v.\n"
+        "Values of then previous run of the program are saved in that same file.\n"
+        "Starting point and starting step must be of the same size."
     )
     run_group = parser.add_argument_group(title = "algorithm options", description = description)
     run_group.add_argument("-f", "--function", nargs = "+", type = str, dest = "F", help = "Test function(s) to run.")
