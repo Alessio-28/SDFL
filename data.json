@@ -1,19 +1,13 @@
 {
     "starting_point": [
         1.0,
-        1.0,
-        1e-05,
-        0.55,
-        2.22
+        1.0
     ],
     "starting_step": [
         1.0,
-        1.0,
-        1.0,
-        1.0,
         1.0
     ],
-    "max_eval": 100000,
+    "max_eval": 10000,
     "min_step": 1e-08,
     "theta": 0.5,
     "gamma": 2.5,

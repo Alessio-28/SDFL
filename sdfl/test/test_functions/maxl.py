@@ -14,6 +14,6 @@ n: int = starting_point.size
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
     f: npt.NDArray[np.float64] = np.zeros(n * 2, dtype = np.float64)
-    f[:n]   =  x[:n]
-    f[n:n*2] = -x[:n]
+    f[:n]   =  x[:]
+    f[n:n*2] = -x[:]
     return np.max(f)

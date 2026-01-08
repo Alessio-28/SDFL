@@ -13,7 +13,7 @@ starting_point: npt.NDArray[np.float64] = np.arange(1, 51, dtype = np.float64) -
 n: int = starting_point.size
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
-    f: npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64)
-    f = 50 * x - np.sum(x)
+    # f: npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64)
+    f: npt.NDArray[np.float64] = 50 * x - np.sum(x)
 
     return np.max(f);

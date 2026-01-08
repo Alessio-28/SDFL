@@ -9,10 +9,10 @@ def _check_starting_point_and_step_requirements(starting_point: Point, starting_
     if len(starting_step.shape) != 1:
         raise ValueError("starting_step must be a 1-dimensional array")
     if starting_point.size != starting_step.size:
-        raise ValueError("starting_point and starting_step must have the same dimension")
+        raise ValueError("starting_point and starting_step must have the same size")
 
 def _check_starting_step_sign(starting_step: npt.NDArray[np.float64]) -> None:
-    if starting_step <= 0:
+    if np.all(starting_step <= 0):
         raise ValueError("starting_step must be an array of positive real numbers")
 
 def _check_limit_eval_requirements(limit_eval: int) -> None:

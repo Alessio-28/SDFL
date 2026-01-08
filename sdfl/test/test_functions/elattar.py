@@ -14,17 +14,17 @@ n: int = starting_point.size
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
     m: int = 51
-    t: npt.NDArray[np.float64] = np.zeros(m,     dtype = np.float64)
+    t: np.float64
     y: npt.NDArray[np.float64] = np.zeros(m,     dtype = np.float64)
     f: npt.NDArray[np.float64] = np.zeros(m * 2, dtype = np.float64)
     for i in range(m):
-        t[i] = i / 10
-        y[i] = np.exp(t[i]) / 2 - np.exp(-2 * t[i])
-        y[i] = y[i] + np.exp(-3 * t[i]) / 2
-        y[i] = y[i] + 1.5 * np.exp(-1.5 * t[i]) * np.sin(7 * t[i])
-        y[i] = y[i] + np.exp(-2.5 * t[i]) * np.sin(5 * t[i])
-        f[i] = x[0] * np.exp(-x[1] * t[i]) * np.cos(x[2] * t[i] + x[3])
-        f[i] = f[i] + x[4] * np.exp(-x[5] * t[i]) - y[i]
+        t = i / 10
+        y[i] = np.exp(t) / 2 - np.exp(-2 * t)
+        y[i] = y[i] + np.exp(-3 * t) / 2
+        y[i] = y[i] + 1.5 * np.exp(-1.5 * t) * np.sin(7 * t)
+        y[i] = y[i] + np.exp(-2.5 * t) * np.sin(5 * t)
+        f[i] = x[0] * np.exp(-x[1] * t) * np.cos(x[2] * t + x[3])
+        f[i] = f[i] + x[4] * np.exp(-x[5] * t) - y[i]
 
     # for i in range(m, m * 2):
     #     f[i] = -f[i - m]
