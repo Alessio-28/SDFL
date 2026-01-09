@@ -1,9 +1,9 @@
 import argparse as ap
 import numpy as np
 
-from ..test import run_test, problems
-from .utils import *
 from ..sdfl.core import parameters
+from .json_manager import *
+from ..test import run_test, problems
 
 def cli() -> None:
     usage: str = "%(prog)s [-h] [-l] [-j] [-f F [F ...] [-x X [X ...]] [-s S [S ...]] [--max-eval MAX] [--min-step MIN] [--params P P P P P] [-v]]"
@@ -61,7 +61,7 @@ def check_data(args: ap.Namespace) -> SDFLData:
             data_dict[KEY_ETA] = args.P[3]
             data_dict[KEY_EPSILON] = args.P[4]
 
-        data = SDFLData.to_sdfl_data(data_dict)
+        data = SDFLData.to_SDFLData(data_dict)
         export_data(data)
     return data
 

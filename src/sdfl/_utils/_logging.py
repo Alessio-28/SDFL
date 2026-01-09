@@ -13,6 +13,7 @@ def _enable_default_logging(logger: logging.Logger) -> None:
         global _handler
         global _q_handler
         global _q_listener
+
         logger.setLevel(logging.INFO)
 
         q: queue.Queue[logging.LogRecord] = queue.Queue(-1)
@@ -28,10 +29,19 @@ def _enable_default_logging(logger: logging.Logger) -> None:
         _q_listener.start()
 
 def _disable_default_logging(logger: logging.Logger) -> None:
+    global _q_listener
     global _q_handler
+    global _handler
+
+    if _q_listener:
+        _q_listener.stop()
+        _q_listener = None
+
     if _q_handler:
-        global _handler
-        global _q_listener
-        _q_listener.stop() # pyright: ignore[reportOptionalMemberAccess]
         logger.removeHandler(_q_handler)
-        _handler, _q_handler, _q_listener = None, None, None
+        _q_handler = None
+
+    if _handler:
+        _handler = None
+
+    logger.setLevel(logging.NOTSET)
