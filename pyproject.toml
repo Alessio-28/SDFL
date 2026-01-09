@@ -1,0 +1,39 @@
+[build-system]
+requires = ["hatchling >= 1.28"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sdfl"
+description = ""
+readme = "README.md"
+requires-python = ">=3.14"
+license = "MIT"
+license-files = { paths = ["LICENSE.txt"] }
+
+authors = [ { name = "", email = "" }, ]
+maintainers = [ { name = "", email = "" }, ]
+keywords = [
+    "License :: OSI Approved :: MIT License",
+    "",
+]
+
+dependencies = ["numpy>=2.4"]
+dynamic = ["version"]
+
+[project.urls]
+Documentation = ""
+"Source code" = "https://github.com/Alessio-28/SDFL"
+
+[tool.hatch.version]
+path = "src/sdfl/__init__.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "src/sdfl/",
+]
+exclude = [
+    ".git/",
+    "*.pdf",
+    "*.json",
+    "run.py",
+]

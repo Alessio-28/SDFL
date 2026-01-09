@@ -32,7 +32,7 @@ class Problem:
         self.n      = n
         self.feval  = feval
 
-_TEST_FUNCTION_MODULE: str = "sdfl.test.test_functions"
+_TEST_FUNCTION_MODULE: str = "src.test.test_functions"
 def set_problems(problems: list[str]) -> dict[str, Problem]:
     problem_collection: dict[str, Problem] = {}
     for problem in problems:
