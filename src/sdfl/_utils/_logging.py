@@ -8,7 +8,7 @@ _handler: logging.StreamHandler[typing.TextIO] | None = None
 _q_handler: QueueHandler | None = None
 _q_listener: QueueListener | None = None
 
-def _enable_default_logging(logger: logging.Logger) -> None:
+def _start_default_logging(logger: logging.Logger) -> None:
     if logger.hasHandlers() and (len(logger.handlers) == 0):
         global _handler
         global _q_handler
@@ -28,7 +28,7 @@ def _enable_default_logging(logger: logging.Logger) -> None:
 
         _q_listener.start()
 
-def _disable_default_logging(logger: logging.Logger) -> None:
+def _stop_default_logging(logger: logging.Logger) -> None:
     global _q_listener
     global _q_handler
     global _handler

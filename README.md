@@ -1,2 +1,2 @@
 # SDFL
-Run `py run.py -h` for help menu
+Run `python run.py -h` for help menu

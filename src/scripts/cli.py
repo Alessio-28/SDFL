@@ -1,13 +1,13 @@
 import argparse as ap
 import numpy as np
 
-from ..sdfl.core import parameters
+from ..sdfl.core.parameters import Parameters
 from .json_manager import *
 from ..test import run_test, problems
 
 def cli() -> None:
     usage: str = "%(prog)s [-h] [-l] [-j] [-f F [F ...] [-x X [X ...]] [-s S [S ...]] [--max-eval MAX] [--min-step MIN] [--params P P P P P] [-v]]"
-    parser: ap.ArgumentParser = ap.ArgumentParser(usage = usage, formatter_class = ap.RawTextHelpFormatter)
+    parser: ap.ArgumentParser = ap.ArgumentParser(usage=usage, formatter_class=ap.RawTextHelpFormatter)
 
     set_parser_utils_group(parser)
     set_parser_run_group(parser)
@@ -42,32 +42,35 @@ def check_input_functions(functions: list[str]) -> tuple[list[str], list[str]]:
     return (available, unavailable)
 
 def check_data(args: ap.Namespace) -> SDFLData:
-    data = import_data()
-    data_dict = SDFLData.to_dict(data)
+    try:
+        data = import_data()
+        data_dict = SDFLData.to_dict(data)
 
-    if args.X or args.S or args.MAX or args.MIN or args.P:
-        if args.X:
-            data_dict[KEY_STARTING_POINT] = np.array(args.X, dtype = np.float64)
-        if args.S:
-            data_dict[KEY_STARTING_STEP] = np.array(args.S, dtype = np.float64)
-        if args.MAX:
-            data_dict[KEY_MAX_EVAL] = int(args.MAX[0])
-        if args.MIN:
-            data_dict[KEY_MIN_STEP] = np.float64(args.MIN[0])
-        if args.P:
-            data_dict[KEY_THETA] = args.P[0]
-            data_dict[KEY_GAMMA] = args.P[1]
-            data_dict[KEY_C] = args.P[2]
-            data_dict[KEY_ETA] = args.P[3]
-            data_dict[KEY_EPSILON] = args.P[4]
+        if args.X or args.S or args.MAX or args.MIN or args.P:
+            if args.X:
+                data_dict[KEY_STARTING_POINT] = np.array(args.X, dtype = np.float64)
+            if args.S:
+                data_dict[KEY_STARTING_STEP] = np.array(args.S, dtype = np.float64)
+            if args.MAX:
+                data_dict[KEY_MAX_EVAL] = int(args.MAX[0])
+            if args.MIN:
+                data_dict[KEY_MIN_STEP] = np.float64(args.MIN[0])
+            if args.P:
+                data_dict[KEY_THETA] = args.P[0]
+                data_dict[KEY_GAMMA] = args.P[1]
+                data_dict[KEY_C] = args.P[2]
+                data_dict[KEY_ETA] = args.P[3]
+                data_dict[KEY_EPSILON] = args.P[4]
 
-        data = SDFLData.to_SDFLData(data_dict)
-        export_data(data)
+            data = SDFLData.to_SDFLData(data_dict)
+    except ValueError:
+        exit(f"\nThe content of {DATA_JSON} is not valid.\n") # Valid {DATA_JSON} file example:\n{DATA_JSON_SCHEMA}\n")
+    export_data(data)
     return data
 
 def set_parser_utils_group(parser: ap.ArgumentParser) -> None:
-    parser.add_argument("-l", "--list-test-functions", action = "store_true", help = "Prints available test functions.")
-    parser.add_argument("-j", "--create-json", action = "store_true", help = f"Creates default {DATA_JSON}")
+    parser.add_argument("-l", "--list-test-functions", action="store_true", help="Prints available test functions.")
+    parser.add_argument("-j", "--create-json", action="store_true", help=f"Creates default {DATA_JSON}")
 
 def set_parser_run_group(parser: ap.ArgumentParser) -> None:
     description: str = (
@@ -75,20 +78,20 @@ def set_parser_run_group(parser: ap.ArgumentParser) -> None:
         "Values of then previous run of the program are saved in that same file.\n"
         "Starting point and starting step must be of the same size."
     )
-    run_group = parser.add_argument_group(title = "algorithm options", description = description)
-    run_group.add_argument("-f", "--function", nargs = "+", type = str, dest = "F", help = "Test function(s) to run.")
-    run_group.add_argument("-x", "--point", nargs = "+", type = np.float64, dest = "X", help = "Starting point of the algorigthm. List of values separated by blank spaces.")
-    run_group.add_argument("-s", "--step", nargs = "+", type = np.float64, dest = "S", help = "Starting step of the algorigthm. List of values separated by blank spaces.")
-    run_group.add_argument("--max-eval", nargs = 1, type = int, dest = "MAX", help = "Max number of function evaluations before SDFL terminates.")
-    run_group.add_argument("--min-step", nargs = 1, type = np.float64, dest = "MIN", help = "Minimum step value before SDFL terminates.")
+    run_group = parser.add_argument_group(title="algorithm options", description=description)
+    run_group.add_argument("-f", "--function", nargs="+", type=str, dest="F", help="Test function(s) to run.")
+    run_group.add_argument("-x", "--point", nargs="+", type=np.float64, dest="X", help="Starting point of the algorigthm. List of values separated by blank spaces.")
+    run_group.add_argument("-s", "--step", nargs="+", type=np.float64, dest="S", help="Starting step of the algorigthm. List of values separated by blank spaces.")
+    run_group.add_argument("--max-eval", nargs=1, type=int, dest="MAX", help="Max number of function evaluations before SDFL terminates.")
+    run_group.add_argument("--min-step", nargs=1, type=np.float64, dest="MIN", help="Minimum step value before SDFL terminates.")
 
     help: str = (
         "Parameters must be witten in the following order: theta gamma c eta epsilon.\n"
-        f"{parameters._THETA_LOWER_BOUND} < theta < {parameters._THETA_UPPER_BOUND}, "
-        f"gamma > {parameters._GAMMA_LOWER_BOUND}, "
-        f"c > {parameters._C_LOWER_BOUND}, "
-        f"eta > {parameters._ETA_LOWER_BOUND}, "
-        f"epsilon > {parameters._EPSILON_LOWER_BOUND}"
+        f"{Parameters._THETA_LOWER_BOUND} < theta < {Parameters._THETA_UPPER_BOUND}, "
+        f"gamma > {Parameters._GAMMA_LOWER_BOUND}, "
+        f"c > {Parameters._C_LOWER_BOUND}, "
+        f"eta > {Parameters._ETA_LOWER_BOUND}, "
+        f"epsilon > {Parameters._EPSILON_LOWER_BOUND}"
     )
-    run_group.add_argument("--params", nargs = 5, type = np.float64, dest = "P", help = help)
-    run_group.add_argument("-v", "--verbose", action = "store_true", help = "Print intermediate results of the algorithm.")
+    run_group.add_argument("--params", nargs=5, type=np.float64, dest="P", help=help)
+    run_group.add_argument("-v", "--verbose", action="store_true", help="Print intermediate results of the algorithm.")

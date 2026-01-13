@@ -27,10 +27,10 @@ class Problem:
     feval: ObjectiveFunction
 
     def __init__(self: Problem, name: str, starting_point: Point, n: int, feval: ObjectiveFunction) -> None:
-        self.name   = name
+        self.name = name
         self.starting_point = starting_point
-        self.n      = n
-        self.feval  = feval
+        self.n = n
+        self.feval = feval
 
 _TEST_FUNCTION_MODULE: str = "src.test.test_functions"
 def set_problems(problems: list[str]) -> dict[str, Problem]:
@@ -38,10 +38,10 @@ def set_problems(problems: list[str]) -> dict[str, Problem]:
     for problem in problems:
         module = importlib.import_module(f"{_TEST_FUNCTION_MODULE}.{problem}")
         problem_collection[problem] = Problem(
-            name = module.name,
-            starting_point = module.starting_point,
-            n = module.n,
-            feval = module.feval
+            name=module.name,
+            starting_point=module.starting_point,
+            n=module.n,
+            feval=module.feval
         )
     return problem_collection
 
