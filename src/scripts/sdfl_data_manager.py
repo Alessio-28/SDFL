@@ -1,24 +1,18 @@
 from typing import Any
 import numpy as np
-import numpy.typing as npt
 
+from ..test import problems
 from ..sdfl.core.parameters import Parameters
-from ..sdfl.core.typing import Point
-from ..sdfl.core.sdfl import _validate_sdfl_args
-
 from .constants import *
 
 class SDFLData:
-    starting_point: Point
-    starting_step: npt.NDArray[np.float64]
+    functions: problems.Problem
     max_eval: int
     min_step: np.float64
     params: Parameters
 
-    def __init__(self: SDFLData, starting_point: Point, starting_step: npt.NDArray[np.float64], max_eval: int, min_step: np.float64, params: Parameters) -> None:
-        _validate_sdfl_args(starting_point, starting_step, max_eval, min_step)
-        self.starting_point = starting_point
-        self.starting_step = starting_step
+    def __init__(self: SDFLData, functions: problems.Problem, max_eval: int, min_step: np.float64, params: Parameters) -> None:
+        self.functions = functions
         self.max_eval = max_eval
         self.min_step = min_step
         self.params = params
@@ -55,37 +49,3 @@ class SDFLData:
             )
         )
 
-    @staticmethod
-    def validate_data_dict(data_dict: dict[str, Any]) -> bool:
-        ARRAY = (list, np.ndarray)
-        INT = (np.integer,)
-        INT_OR_FLOAT = (np.integer, np.floating)
-        valid_data_dict = {
-            KEY_STARTING_POINT: (ARRAY,        True),
-            KEY_STARTING_STEP:  (ARRAY,        True),
-            KEY_MAX_EVAL:       (INT,          False),
-            KEY_MIN_STEP:       (INT_OR_FLOAT, False),
-            KEY_THETA:          (INT_OR_FLOAT, False),
-            KEY_GAMMA:          (INT_OR_FLOAT, False),
-            KEY_C:              (INT_OR_FLOAT, False),
-            KEY_ETA:            (INT_OR_FLOAT, False),
-            KEY_EPSILON:        (INT_OR_FLOAT, False),
-        }
-
-        if set(valid_data_dict.keys()) != set(data_dict.keys()):
-            return False
-
-        for k, (allowed_types, is_iterable) in valid_data_dict.items():
-            v = data_dict[k]
-
-            if not any([np.issubdtype(type(v), t) for t in allowed_types]):
-                return False
-
-            if is_iterable:
-                if isinstance(v, np.ndarray):
-                    if not any([np.issubdtype(v.dtype, t) for t in INT_OR_FLOAT]):
-                        return False
-                elif not all([any([np.issubdtype(type(x), t) for t in INT_OR_FLOAT]) for x in v]):
-                    return False
-
-        return True

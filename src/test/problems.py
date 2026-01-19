@@ -17,6 +17,7 @@
 import os
 import importlib
 import pathlib
+import types
 
 from ..sdfl.core.typing import Point, ObjectiveFunction
 
@@ -33,20 +34,16 @@ class Problem:
         self.feval = feval
 
 _TEST_FUNCTION_MODULE: str = "src.test.test_functions"
-def set_problems(problems: list[str]) -> dict[str, Problem]:
-    problem_collection: dict[str, Problem] = {}
-    for problem in problems:
-        module = importlib.import_module(f"{_TEST_FUNCTION_MODULE}.{problem}")
-        problem_collection[problem] = Problem(
-            name=module.name,
-            starting_point=module.starting_point,
-            n=module.n,
-            feval=module.feval
-        )
-    return problem_collection
+def set_problem(problem_module: types.ModuleType) -> Problem:
+    return Problem(
+        name=problem_module.name,
+        starting_point=problem_module.starting_point,
+        n=problem_module.n,
+        feval=problem_module.feval
+    )
 
-_problems: dict[str, str] | None = None
-def get_problems() -> dict[str, str]:
+_problems: dict[str, Problem] | None = None
+def get_problems() -> dict[str, Problem]:
     global _problems
     if _problems is not None:
         return _problems
@@ -55,16 +52,11 @@ def get_problems() -> dict[str, str]:
         filename = file.split(".")
         if len(filename) == 2 and filename[1] == "py":
             module = importlib.import_module(f"{_TEST_FUNCTION_MODULE}.{filename[0]}")
-            _problems[module.name] = filename[0]
+            _problems[module.name] = set_problem(module)
     return _problems
 
 def get_problem_names() -> list[str]:
-    problems: dict[str, str] = get_problems()
-    return list(problems.keys())
-
-def get_problem_files() -> list[str]:
-    problems: dict[str, str] = get_problems()
-    return list(problems.values())
+   return list(get_problems().keys())
 
 def print_problem_names() -> None:
     problems: list[str] = get_problem_names()

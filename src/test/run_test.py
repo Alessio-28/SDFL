@@ -1,8 +1,11 @@
 import logging
 import typing
+import numpy as np
+import numpy.typing as npt
 
 from ..sdfl.core.sdfl import SDFL
-from ..sdfl.core.typing import ObjectiveFunction
+from ..sdfl.core.typing import Point, ObjectiveFunction
+from ..sdfl.core.parameters import Parameters
 from ..scripts.sdfl_data_manager import SDFLData
 from . import problems
 
@@ -12,7 +15,7 @@ handler.setLevel(logging.INFO)
 logger.setLevel(logging.INFO)
 logger.addHandler(handler)
 
-def setup_tests_and_run(functions: list[str], data: SDFLData, verbose: bool = False) -> None:
+def setup_tests_and_run(functions: list[str], starting_point: Point | None = None, starting_step: npt.NDArray[np.float64] | None = None, params: Parameters, max_eval: int, min_step: np.float64, verbose: bool = False) -> None:
     prob_collection: dict[str, problems.Problem] = problems.set_problems(functions)
 
     for prob in functions:
