@@ -1,21 +1,14 @@
 import json
 from typing import Any
 import numpy as np
-from ..sdfl.core.parameters import Parameters
-from . import sdfl_data_manager as sdfl_data
+import numpy.typing as npt
+
+from . import sdfl_data
 from . import constants
+from ..test import problems
+from ..sdfl.core import parameters
 
 DATA_JSON: str = "data.json"
-
-# DATA_JSON_SCHEMA: str = '''{
-#     "max_eval": 10000,
-#     "min_step": 1e-08,
-#     "theta": 0.5,
-#     "gamma": 2.5,
-#     "c": 1.0,
-#     "eta": 1.0,
-#     "epsilon": 1.0
-# }'''
 
 def export_data(data_dict: dict[str, Any]) -> None:
     with open(DATA_JSON, "w") as p:
@@ -70,21 +63,18 @@ def validate_data_json(data_dict: dict[str, Any]) -> bool:
 
     return True
 
-# class JSONContent:
-#     max_eval: int
-#     min_step: np.float64
-#     theta: np.float64
-#     gamma: np.float64
-#     c: np.float64
-#     eta: np.float64
-#     epsilon: np.float64
-
-#     def __init__(self: JSONContent, max_eval: int, min_step: np.float64, theta: np.float64, gamma: np.float64, c: np.float64, eta: np.float64, epsilon: np.float64) -> None:
-#         self.max_eval = max_eval
-#         self.min_step = min_step
-#         self.theta = theta
-#         self.gamma = gamma
-#         self.c = c
-#         self.eta = eta
-#         self.epsilon = epsilon
-
+def dict_to_SDFLData(f: problems.Problem, data_dict: dict[str, Any], starting_step: npt.NDArray[np.float64] | None = None) -> sdfl_data.SDFLData:
+    data = sdfl_data.SDFLData(
+        function=f,
+        max_eval=data_dict[constants.KEY_MAX_EVAL],
+        min_step=data_dict[constants.KEY_MIN_STEP],
+        params=parameters.Parameters(
+            theta=data_dict[constants.KEY_THETA],
+            gamma=data_dict[constants.KEY_GAMMA],
+            c=data_dict[constants.KEY_C],
+            eta=data_dict[constants.KEY_ETA],
+            epsilon=data_dict[constants.KEY_EPSILON],
+        ),
+        starting_step=starting_step
+    )
+    return data

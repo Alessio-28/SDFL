@@ -34,6 +34,7 @@ class Problem:
         self.feval = feval
 
 _TEST_FUNCTION_MODULE: str = "src.test.test_functions"
+_TEST_FUNCTION_DIR: str = _TEST_FUNCTION_MODULE.replace(".", "/")
 def set_problem(problem_module: types.ModuleType) -> Problem:
     return Problem(
         name=problem_module.name,
@@ -45,10 +46,10 @@ def set_problem(problem_module: types.ModuleType) -> Problem:
 _problems: dict[str, Problem] | None = None
 def get_problems() -> dict[str, Problem]:
     global _problems
-    if _problems is not None:
+    if _problems != None:
         return _problems
     _problems = {}
-    for file in os.listdir(pathlib.PurePath(_TEST_FUNCTION_MODULE.replace(".", "/"))):
+    for file in os.listdir(pathlib.PurePath(_TEST_FUNCTION_DIR)):
         filename = file.split(".")
         if len(filename) == 2 and filename[1] == "py":
             module = importlib.import_module(f"{_TEST_FUNCTION_MODULE}.{filename[0]}")

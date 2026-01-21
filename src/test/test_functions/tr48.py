@@ -10,7 +10,7 @@ import numpy.typing as npt
 
 name: str = "tr48"
 n: int = 48
-startin_point: npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64)
+starting_point: npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64)
 
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
