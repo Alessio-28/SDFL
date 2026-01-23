@@ -22,7 +22,7 @@ and it is detached after the algorithm terminates.
 def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, starting_step: npt.NDArray[np.float64], params: Parameters, max_eval: int, min_step: np.float64, verbose: bool = False) -> SDFLResult:
     """Stochastic Derivative-Free Linesearch-based algorithm.
 
-    Implementation of SDFL algorithm from:
+    Implementation of `SDFL` algorithm from:
     `https://arxiv.org/abs/2508.00495v1`
 
     `Arguments`
@@ -42,7 +42,7 @@ def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, starting_step: npt.N
         Maximum number of evaluations of the objective function.
     `min_step` : `float64`
         Minimum value of maximum of steps.
-    `verbose` : `bool` (default: `False)`
+    `verbose` : `bool` (default: `False`)
         Toggles logging of intermediate and end calculations.
 
     `Return`
@@ -50,6 +50,7 @@ def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, starting_step: npt.N
     `result` : `SDFLResult`
         Contains the result of the algorithm.
     """
+
     _validate_sdfl_args(starting_point, starting_step, max_eval, min_step)
 
     n: int = starting_point.size
@@ -57,7 +58,7 @@ def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, starting_step: npt.N
     f_wrapper: _FunctionWrapper = _FunctionWrapper(obj_fun)
     F: ObjectiveFunction = f_wrapper.eval
 
-    # init_step: npt.NDArray[np.float64] = np.zeros(n, dtype=np.float64) # \bar{\alpha}
+    # init_step: npt.NDArray[np.float64] = np.zeros(n, dtype=np.float64)     # \bar{\alpha}
     accepted_step: npt.NDArray[np.float64] = np.zeros(n, dtype=np.float64) # \alpha
     tentative_step: npt.NDArray[np.float64] = starting_step.copy()         # \tilde{\alpha}
     max_tentative_step: np.float64 = np.max(tentative_step)
@@ -104,7 +105,7 @@ def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, starting_step: npt.N
                 tentative_step *= theta
             max_tentative_step = np.max(tentative_step)
 
-        result: SDFLResult = SDFLResult(current_point, fun_eval_at_cur_point, f_wrapper._nfev)
+        result: SDFLResult = SDFLResult(current_point, fun_eval_at_cur_point, f_wrapper.get_nfev())
 
         if verbose:
             sdfl_logger.info("Result:\n%s\n", result)
@@ -116,6 +117,7 @@ def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, starting_step: npt.N
 def _compute_direction(obj_fun: ObjectiveFunction, point: Point, fun_eval_at_point: np.float64, step_size: np.float64, index: int, bound: np.float64) -> tuple[_DirectionResult, np.float64]:
     elem: np.float64 = point[index]
     F_bound: np.float64 = fun_eval_at_point + bound
+    dir_res: _DirectionResult = _DirectionResult.POSITIVE
 
     # Try POSITIVE direction
     point[index] = elem + step_size
@@ -126,37 +128,34 @@ def _compute_direction(obj_fun: ObjectiveFunction, point: Point, fun_eval_at_poi
         point[index] = elem - step_size
         fun_eval_at_direction = obj_fun(point)
 
-        # Restore changes
-        point[index] = elem
         if fun_eval_at_direction > F_bound:
-            return (_DirectionResult.FAILURE, fun_eval_at_direction)
+            dir_res = _DirectionResult.FAILURE 
         else:
-            return (_DirectionResult.NEGATIVE, fun_eval_at_direction)
+            dir_res = _DirectionResult.NEGATIVE 
 
     # Restore changes
     point[index] = elem
-    return (_DirectionResult.POSITIVE, fun_eval_at_direction)
+    return (dir_res, fun_eval_at_direction)
 
 def _line_search(obj_fun: ObjectiveFunction, point: Point, fun_eval_at_point: np.float64, direction_sign: int, step_size: np.float64, index: int, bound: np.float64) -> np.float64:
     elem: np.float64 = point[index]
     step: np.float64 = step_size * direction_sign
-    step_aux: np.float64 = step * 2
+    step_2: np.float64 = step * 2
 
-    iter2: int = 1
+    power2: int = 1
+    point[index] = elem + step_2
 
     F_a: np.float64 = fun_eval_at_point
-    point[index] = elem + step_aux
     F_b: np.float64 = obj_fun(point)
-    while F_b - F_a <= bound * iter2 * iter2:
-        iter2 *= 2
-        point[index] = elem + iter2*step_aux
+    while F_b - F_a <= bound * power2 * power2:
+        power2 *= 2
+        point[index] = elem + power2*step_2
 
         F_a, F_b = F_b, obj_fun(point)
 
     # Correct point
-    point[index] = elem + iter2*step
-
-    return step_size * iter2
+    point[index] = elem + power2*step
+    return step_size * power2
 
 class _FunctionWrapper:
     """Objective function wrapper, counts function evaluations.
@@ -175,7 +174,9 @@ class _FunctionWrapper:
         Evaluates the objective function at the given point.
         Increases the evaluation counter by `1`.
     `get_obj_fun` : `() -> ObjectiveFunction`
+        _obj_fun getter.
     `get_nfev` : `() -> int`
+        _nfev getter.
     """
 
     _obj_fun: ObjectiveFunction
@@ -189,14 +190,16 @@ class _FunctionWrapper:
         `obj_fun` : `ObjectiveFunction`
             Function to assign to the wrapper.
         """
+
         self._obj_fun = obj_fun
         self._nfev = 0
 
     def eval(self: _FunctionWrapper, x: Point) -> np.float64:
         """Evaluates the objective function.
 
-        It evaluates the objective function at `x`
+        Evaluates the objective function at `x`
         and increases the evaluations counter by `1`.
+        Raises `RuntimeError` if the result of evaluation is `NaN` or `infinity`.
 
         `Arguments`
         --------
@@ -208,49 +211,99 @@ class _FunctionWrapper:
         `result` : `float64`
             The result of the evaluation.
         """
+
         self._nfev += 1
-        return self._obj_fun(x)
+        res: np.float64 = self._obj_fun(x)
+
+        if not np.isfinite(res):
+            if np.isnan(res):
+                raise RuntimeError(f"Evaluation of objective function at point {x} results in NaN. Evaluation {self._nfev}")
+            elif np.isposinf(res):
+                raise RuntimeError(f"Evaluation of objective function at point {x} results in +infinity. Evaluation {self._nfev}")
+            elif np.isneginf(res):
+                raise RuntimeError(f"Evaluation of objective function at point {x} results in -infinity. Evaluation {self._nfev}")
+
+        return res
 
     def get_obj_fun(self: _FunctionWrapper) -> ObjectiveFunction:
+        """_obj_fun getter."""
         return self._obj_fun
 
     def get_nfev(self: _FunctionWrapper) -> int:
+        """_nfev getter."""
         return self._nfev
 
 class _DirectionResult(Enum):
+    """Result of `_compute_direction`.
+
+    `Values`
+    --------
+    `POSITIVE` = `1`
+        Result of `_compute_direction` found on positive direction along the axis.
+    `NEGATIVE` = `-1`
+        Result of `_compute_direction` found on negative direction along the axis.
+    `FAiLURE` = `0`
+        `_compute_direction` terminated without finding a suitable result.
+    """
+
     POSITIVE =  1
+    """`POSITIVE` = `1`
+        Result of `_compute_direction` found on positive direction along the axis.
+    """
+
     NEGATIVE = -1
+    """`NEGATIVE` = `-1`
+        Result of `_compute_direction` found on negative direction along the axis.
+    """
+
     FAILURE  =  0
+    """`FAiLURE` = `0`
+        `_compute_direction` terminated without finding a suitable result.
+    """
 
 class SDFLResult:
+    """Contains the result of `SDFL`.
+
+    `Attributes`
+    --------
+    `x` : `Point`
+        Point computed by `SDFL`.
+    `f` : `float64`
+        Objective function evaluated at `x`.
+    `nfev` : `int`
+        How many objective function evaluations have been computed.
+    """
+
     x: Point
-    fun: np.float64
+    f: np.float64
     nfev: int
 
-    def __init__(self: SDFLResult, x: Point, fun: np.float64, nfev: int) -> None:
+    def __init__(self: SDFLResult, x: Point, f: np.float64, nfev: int) -> None:
         self.x = x
-        self.fun = fun
+        self.f = f
         self.nfev = nfev
 
     @override
     def __str__(self: SDFLResult) -> str:
         str_repr : str = (
             f"x = {self.x}\n"
-            f"f(x) = {self.fun}\n"
+            f"f(x) = {self.f}\n"
             f"nfev = {self.nfev}\n"
         )
         return str_repr
 
 def _validate_sdfl_args(starting_point: Point, starting_step: npt.NDArray[np.float64], max_eval: int, min_step: np.float64) -> None:
+    """Precondition checks for `SDFL`."""
+
     if len(starting_point.shape) != 1:
-        raise ValueError("starting_point must be a 1-dimensional array")
+        raise ValueError("starting_point must be a 1-dimensional array.")
     if len(starting_step.shape) != 1:
-        raise ValueError("starting_step must be a 1-dimensional array")
+        raise ValueError("starting_step must be a 1-dimensional array.")
     if starting_point.size != starting_step.size:
-        raise ValueError("starting_point and starting_step must have the same size")
-    if np.all(starting_step <= 0):
-        raise ValueError("starting_step must be an array of positive real numbers")
+        raise ValueError("starting_point and starting_step must have the same size.")
+    if np.any(starting_step <= 0):
+        raise ValueError("starting_step must be an array of positive real numbers.")
     if max_eval <= 0:
-        raise ValueError("max_eval must be a positive integer")
+        raise ValueError("max_eval must be a positive integer.")
     if min_step <= 0:
-        raise ValueError("min_step must be a positive real number")
+        raise ValueError("min_step must be a positive real number.")
