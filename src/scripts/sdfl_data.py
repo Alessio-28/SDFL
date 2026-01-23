@@ -2,7 +2,7 @@ import numpy as np
 import numpy.typing as npt
 
 from ..test import problems
-from ..sdfl.core import parameters
+from ..sdfl.core import parameters, sdfl
 
 class SDFLData:
     function: problems.Problem
@@ -20,3 +20,4 @@ class SDFLData:
             self.starting_step = np.ones(function.n, dtype=np.float64)
         else:
             self.starting_step = starting_step
+        sdfl._validate_sdfl_args(function.starting_point, starting_step, max_eval, min_step) # pyright: ignore[reportArgumentType]
