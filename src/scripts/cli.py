@@ -3,7 +3,7 @@ import numpy as np
 import numpy.typing as npt
 
 from . import constants
-from . import json_manager
+from . import data_json
 from . import sdfl_data
 from ..test import run_test, problems
 from ..sdfl.core.parameters import Parameters
@@ -22,7 +22,7 @@ def check_arguments(parser: ap.ArgumentParser, args: ap.Namespace) -> None:
     if args.list_test_functions:
         problems.print_problem_names()
     if args.create_json:
-        json_manager.create_default_data_json()
+        data_json.create_default_data_json()
     if args.F:
         f = check_input_function(args.F[0])
         if f == None:
@@ -42,7 +42,7 @@ def check_input_function(f: str) -> problems.Problem | None:
 def check_data(args: ap.Namespace, f: problems.Problem) -> sdfl_data.SDFLData:
     starting_step: npt.NDArray[np.float64] | None = None
     try:
-        data = json_manager.import_data()
+        data = data_json.import_data()
         if args.X:
             f.starting_point = np.array(args.X, dtype=np.float64)
         if args.S:
@@ -59,18 +59,18 @@ def check_data(args: ap.Namespace, f: problems.Problem) -> sdfl_data.SDFLData:
                 data[constants.KEY_ETA] = args.P[3]
                 data[constants.KEY_EPSILON] = args.P[4]
 
-            json_manager.export_data(data)
+            data_json.export_data(data)
     except ValueError:
-        exit(f"\nThe content of {json_manager.DATA_JSON} is not valid.\n") # Valid {DATA_JSON} file example:\n{DATA_JSON_SCHEMA}\n")
-    return json_manager.dict_to_SDFLData(f, data, starting_step)
+        exit(f"\nThe content of {data_json.DATA_JSON} is not valid.\n") # Valid {DATA_JSON} file example:\n{DATA_JSON_SCHEMA}\n")
+    return data_json.dict_to_SDFLData(f, data, starting_step)
 
 def set_parser_utils_group(parser: ap.ArgumentParser) -> None:
     parser.add_argument("-l", "--list-test-functions", action="store_true", help="Prints available test functions.")
-    parser.add_argument("-j", "--create-json", action="store_true", help=f"Creates default {json_manager.DATA_JSON}")
+    parser.add_argument("-j", "--create-json", action="store_true", help=f"Creates default {data_json.DATA_JSON}")
 
 def set_parser_run_group(parser: ap.ArgumentParser) -> None:
     description: str = (
-        f"--max-eval, --min-step and --params can also be set in {json_manager.DATA_JSON}.\n"
+        f"--max-eval, --min-step and --params can also be set in {data_json.DATA_JSON}.\n"
         "Values of the previous run of the program are saved in that same file.\n"
         "Starting point and starting step must be of the same size."
     )
@@ -82,7 +82,7 @@ def set_parser_run_group(parser: ap.ArgumentParser) -> None:
     run_group.add_argument("--min-step", nargs=1, type=np.float64, dest="MIN", help="Minimum step value before SDFL terminates.")
 
     help: str = (
-        "Parameters must be witten in the following order: theta gamma c eta epsilon.\n"
+        "Parameters must be written in the following order: theta gamma c eta epsilon.\n"
         f"{Parameters._THETA_LOWER_BOUND} < theta < {Parameters._THETA_UPPER_BOUND}, "
         f"gamma > {Parameters._GAMMA_LOWER_BOUND}, "
         f"c > {Parameters._C_LOWER_BOUND}, "

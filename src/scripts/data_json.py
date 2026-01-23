@@ -58,7 +58,7 @@ def validate_data_json(data_dict: dict[str, Any]) -> bool:
     for k, allowed_types in valid_data_dict.items():
         v = data_dict[k]
 
-        if not any([np.issubdtype(type(v), t) for t in allowed_types]):
+        if not any([np.issubdtype(type(v), t) for t in allowed_types]): # pyright: ignore[reportUnknownArgumentType]
             return False
 
     return True

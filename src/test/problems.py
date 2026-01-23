@@ -35,7 +35,7 @@ class Problem:
 
 _TEST_FUNCTION_MODULE: str = "src.test.test_functions"
 _TEST_FUNCTION_DIR: str = _TEST_FUNCTION_MODULE.replace(".", "/")
-def set_problem(problem_module: types.ModuleType) -> Problem:
+def _set_problem(problem_module: types.ModuleType) -> Problem:
     return Problem(
         name=problem_module.name,
         starting_point=problem_module.starting_point,
@@ -53,7 +53,7 @@ def get_problems() -> dict[str, Problem]:
         filename = file.split(".")
         if len(filename) == 2 and filename[1] == "py":
             module = importlib.import_module(f"{_TEST_FUNCTION_MODULE}.{filename[0]}")
-            _problems[module.name] = set_problem(module)
+            _problems[module.name] = _set_problem(module)
     return _problems
 
 def get_problem_names() -> list[str]:
