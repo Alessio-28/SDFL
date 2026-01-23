@@ -28,6 +28,10 @@ class Problem:
     feval: ObjectiveFunction
 
     def __init__(self: Problem, name: str, starting_point: Point, n: int, feval: ObjectiveFunction) -> None:
+        if len(starting_point.shape) != 1:
+            raise ValueError("starting_point must be a 1-dimensional array.")
+        if starting_point.size != n:
+            raise ValueError("starting_point must have size n.")
         self.name = name
         self.starting_point = starting_point
         self.n = n

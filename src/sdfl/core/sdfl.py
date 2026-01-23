@@ -19,7 +19,7 @@ If `SDFL` has `verbose == True` and no other handler is attached to `sdfl_logger
 and it is detached after the algorithm terminates.
 """
 
-def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, starting_step: npt.NDArray[np.float64], params: Parameters, max_eval: int, min_step: np.float64, verbose: bool = False) -> SDFLResult:
+def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, max_eval: int, min_step: np.float64, params: Parameters, starting_step: npt.NDArray[np.float64] | None = None, verbose: bool = False) -> SDFLResult:
     """Stochastic Derivative-Free Linesearch-based algorithm.
 
     Implementation of `SDFL` algorithm from:
@@ -32,16 +32,18 @@ def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, starting_step: npt.N
     `starting_point` : `Point`
         Starting point of the algorithm.
         It must be a one dimensional array.
-         `starting_point.size` must be equal to `starting_step.size`.
-    `starting_step` : `ndarray[float64]`
-        List of step values for the first iteration of the algorithm.
-        It must be a one dimensional array.
-         `starting_step.size` must be equal to `starting_point.size`.
+        If `starting_step` is passed as argument,
+        `starting_point.size` must be equal to `starting_step.size`.
     `params` : `Parameters`
     `max_eval` : `int`
         Maximum number of evaluations of the objective function.
     `min_step` : `float64`
         Minimum value of maximum of steps.
+    `starting_step` : `ndarray[float64]` | `None` (default: `None`)
+        List of step values for the first iteration of the algorithm.
+        It must be a one dimensional array.
+        if `starting_step == None`, it gets initialised appropriately as an array of `1`s.
+        Otherwise `starting_step.size` must be equal to `starting_point.size`.
     `verbose` : `bool` (default: `False`)
         Toggles logging of intermediate and end calculations.
 
@@ -51,9 +53,11 @@ def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, starting_step: npt.N
         Contains the result of the algorithm.
     """
 
-    _validate_sdfl_args(starting_point, starting_step, max_eval, min_step)
+    _validate_sdfl_args(starting_point, max_eval, min_step, starting_step)
 
     n: int = starting_point.size
+    if starting_step == None:
+        starting_step = np.ones(n, dtype=np.float64)
 
     f_wrapper: _FunctionWrapper = _FunctionWrapper(obj_fun)
     F: ObjectiveFunction = f_wrapper.eval
@@ -292,17 +296,18 @@ class SDFLResult:
         )
         return str_repr
 
-def _validate_sdfl_args(starting_point: Point, starting_step: npt.NDArray[np.float64], max_eval: int, min_step: np.float64) -> None:
+def _validate_sdfl_args(starting_point: Point, max_eval: int, min_step: np.float64, starting_step: npt.NDArray[np.float64] | None = None) -> None:
     """Precondition checks for `SDFL`."""
 
     if len(starting_point.shape) != 1:
         raise ValueError("starting_point must be a 1-dimensional array.")
-    if len(starting_step.shape) != 1:
-        raise ValueError("starting_step must be a 1-dimensional array.")
-    if starting_point.size != starting_step.size:
-        raise ValueError("starting_point and starting_step must have the same size.")
-    if np.any(starting_step <= 0):
-        raise ValueError("starting_step must be an array of positive real numbers.")
+    if starting_step != None:
+        if len(starting_step.shape) != 1:
+            raise ValueError("starting_step must be a 1-dimensional array.")
+        if starting_point.size != starting_step.size:
+            raise ValueError("starting_point and starting_step must have the same size.")
+        if np.any(starting_step <= 0):
+            raise ValueError("starting_step must be an array of positive real numbers.")
     if max_eval <= 0:
         raise ValueError("max_eval must be a positive integer.")
     if min_step <= 0:

@@ -12,12 +12,12 @@ logger.addHandler(handler)
 
 def run(data: SDFLData, verbose: bool = False) -> None:
     if data.function.starting_point.size != data.function.n or data.starting_step.size != data.function.n:
-        raise ValueError(f"Problem {data.function.name} is defined in {data.function.n} dimensions")
+        raise ValueError(f"Problem {data.function.name} is defined in {data.function.n} dimensions.")
 
     if verbose:
         logger.info(f"Function: %s", data.function.name)
 
-    result = SDFL(data.function.feval, data.function.starting_point, data.starting_step, data.params, data.max_eval, data.min_step, verbose)
+    result = SDFL(data.function.feval, data.function.starting_point, data.max_eval, data.min_step, data.params, data.starting_step, verbose)
 
     if not verbose:
         print(f"Function: {data.function.name}\nResult:\n{result}")
