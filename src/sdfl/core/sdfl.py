@@ -22,8 +22,11 @@ and it is detached after the algorithm terminates.
 def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, max_eval: int, min_step: np.float64, params: Parameters, starting_step: npt.NDArray[np.float64] | None = None, verbose: bool = False) -> SDFLResult:
     """Stochastic Derivative-Free Linesearch-based algorithm.
 
-    Implementation of `SDFL` algorithm from:
-    `https://arxiv.org/abs/2508.00495v1`
+    Implementation of `SDFL` algorithm from `https://arxiv.org/abs/2508.00495v1`
+
+    If preconditions are not met, a `ValueError` is raised.
+    When the objective function gets evaluated and returns either `NaN` or `inf`,
+    a `RuntimeError` is raised.
 
     `Arguments`
     --------
@@ -31,19 +34,25 @@ def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, max_eval: int, min_s
         Objective function.
     `starting_point` : `Point`
         Starting point of the algorithm.
-        It must be a one dimensional array.
-        If `starting_step` is passed as argument,
-        `starting_point.size` must be equal to `starting_step.size`.
+        Preconditions:
+            It must be a one dimensional array.
+            If `starting_step` is passed as argument,
+            `starting_point.size` must be equal to `starting_step.size`.
     `params` : `Parameters`
+        See `Parameters` class.
     `max_eval` : `int`
         Maximum number of evaluations of the objective function.
+        Precondition: `max_eval > 0`.
     `min_step` : `float64`
         Minimum value of maximum of steps.
+        Precondition: `min_step > 0`.
     `starting_step` : `ndarray[float64]` | `None` (default: `None`)
         List of step values for the first iteration of the algorithm.
-        It must be a one dimensional array.
-        if `starting_step == None`, it gets initialised appropriately as an array of `1`s.
-        Otherwise `starting_step.size` must be equal to `starting_point.size`.
+        If `starting_step == None`, it gets initialised appropriately as an array of `1`s.
+        Preconditions:
+            It must be a one dimensional array.
+            If `starting_step != None`,
+            then `starting_step.size` must be equal to `starting_point.size`.
     `verbose` : `bool` (default: `False`)
         Toggles logging of intermediate and end calculations.
 
@@ -52,7 +61,6 @@ def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, max_eval: int, min_s
     `result` : `SDFLResult`
         Contains the result of the algorithm.
     """
-
     _validate_sdfl_args(starting_point, max_eval, min_step, starting_step)
 
     n: int = starting_point.size
@@ -90,7 +98,7 @@ def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, max_eval: int, min_s
                 step: np.float64 = tentative_step[i]
                 bound: np.float64 = params.compute_bound(step)
 
-                dir_res, fun_eval_at_direction = _compute_direction(F, current_point, fun_eval_at_cur_point, step, i, bound)
+                dir_res, fun_eval_at_direction = _choose_direction(F, current_point, fun_eval_at_cur_point, step, i, bound)
 
                 if dir_res == _DirectionResult.FAILURE:
                     accepted_step[i] = 0
@@ -104,7 +112,7 @@ def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, max_eval: int, min_s
                 sdfl_logger.info("x = %s\nF(x) = %g\nStep = %s\n", current_point, fun_eval_at_cur_point, tentative_step)
 
             if new_point_found:
-                np.maximum(accepted_step, tentative_step, out = tentative_step)
+                np.maximum(accepted_step, tentative_step, out=tentative_step)
             else:
                 tentative_step *= theta
             max_tentative_step = np.max(tentative_step)
@@ -118,18 +126,18 @@ def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, max_eval: int, min_s
 
     return result
 
-def _compute_direction(obj_fun: ObjectiveFunction, point: Point, fun_eval_at_point: np.float64, step_size: np.float64, index: int, bound: np.float64) -> tuple[_DirectionResult, np.float64]:
-    elem: np.float64 = point[index]
+def _choose_direction(obj_fun: ObjectiveFunction, point: Point, fun_eval_at_point: np.float64, step_size: np.float64, axis: int, bound: np.float64) -> tuple[_DirectionResult, np.float64]:
+    elem: np.float64 = point[axis]
     F_bound: np.float64 = fun_eval_at_point + bound
     dir_res: _DirectionResult = _DirectionResult.POSITIVE
 
     # Try POSITIVE direction
-    point[index] = elem + step_size
+    point[axis] = elem + step_size
     fun_eval_at_direction: np.float64 = obj_fun(point)
 
     if fun_eval_at_direction > F_bound:
         # Try NEGATIVE direction
-        point[index] = elem - step_size
+        point[axis] = elem - step_size
         fun_eval_at_direction = obj_fun(point)
 
         if fun_eval_at_direction > F_bound:
@@ -138,27 +146,27 @@ def _compute_direction(obj_fun: ObjectiveFunction, point: Point, fun_eval_at_poi
             dir_res = _DirectionResult.NEGATIVE 
 
     # Restore changes
-    point[index] = elem
+    point[axis] = elem
     return (dir_res, fun_eval_at_direction)
 
-def _line_search(obj_fun: ObjectiveFunction, point: Point, fun_eval_at_point: np.float64, direction_sign: int, step_size: np.float64, index: int, bound: np.float64) -> np.float64:
-    elem: np.float64 = point[index]
+def _line_search(obj_fun: ObjectiveFunction, point: Point, fun_eval_at_point: np.float64, direction_sign: int, step_size: np.float64, axis: int, bound: np.float64) -> np.float64:
+    elem: np.float64 = point[axis]
     step: np.float64 = step_size * direction_sign
     step_2: np.float64 = step * 2
 
     power2: int = 1
-    point[index] = elem + step_2
+    point[axis] = elem + step_2
 
     F_a: np.float64 = fun_eval_at_point
     F_b: np.float64 = obj_fun(point)
     while F_b - F_a <= bound * power2 * power2:
         power2 *= 2
-        point[index] = elem + power2*step_2
+        point[axis] = elem + power2*step_2
 
         F_a, F_b = F_b, obj_fun(point)
 
     # Correct point
-    point[index] = elem + power2*step
+    point[axis] = elem + power2*step
     return step_size * power2
 
 class _FunctionWrapper:
@@ -203,7 +211,7 @@ class _FunctionWrapper:
 
         Evaluates the objective function at `x`
         and increases the evaluations counter by `1`.
-        Raises `RuntimeError` if the result of evaluation is `NaN` or `infinity`.
+        Raises `RuntimeError` if the result of evaluation is `NaN` or `inf`.
 
         `Arguments`
         --------
@@ -223,9 +231,9 @@ class _FunctionWrapper:
             if np.isnan(res):
                 raise RuntimeError(f"Evaluation of objective function at point {x} results in NaN. Evaluation {self._nfev}")
             elif np.isposinf(res):
-                raise RuntimeError(f"Evaluation of objective function at point {x} results in +infinity. Evaluation {self._nfev}")
+                raise RuntimeError(f"Evaluation of objective function at point {x} results in +inf. Evaluation {self._nfev}")
             elif np.isneginf(res):
-                raise RuntimeError(f"Evaluation of objective function at point {x} results in -infinity. Evaluation {self._nfev}")
+                raise RuntimeError(f"Evaluation of objective function at point {x} results in -inf. Evaluation {self._nfev}")
 
         return res
 
@@ -238,31 +246,31 @@ class _FunctionWrapper:
         return self._nfev
 
 class _DirectionResult(Enum):
-    """Result of `_compute_direction`.
+    """Result of `_compute_direction()`.
 
     `Values`
     --------
     `POSITIVE` = `1`
-        Result of `_compute_direction` found on positive direction along the axis.
+        Result of `_compute_direction()` found on positive direction along the axis.
     `NEGATIVE` = `-1`
-        Result of `_compute_direction` found on negative direction along the axis.
+        Result of `_compute_direction()` found on negative direction along the axis.
     `FAiLURE` = `0`
-        `_compute_direction` terminated without finding a suitable result.
+        `_compute_direction()` terminated without finding a suitable result.
     """
 
     POSITIVE =  1
     """`POSITIVE` = `1`
-        Result of `_compute_direction` found on positive direction along the axis.
+        Result of `_compute_direction()` found on positive direction along the axis.
     """
 
     NEGATIVE = -1
     """`NEGATIVE` = `-1`
-        Result of `_compute_direction` found on negative direction along the axis.
+        Result of `_compute_direction()` found on negative direction along the axis.
     """
 
     FAILURE  =  0
     """`FAiLURE` = `0`
-        `_compute_direction` terminated without finding a suitable result.
+        `_compute_direction()` terminated without finding a suitable result.
     """
 
 class SDFLResult:
