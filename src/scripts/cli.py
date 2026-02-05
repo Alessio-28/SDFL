@@ -8,6 +8,58 @@ from . import sdfl_data
 from ..test import run_test, problems
 from ..sdfl.core.parameters import Parameters
 
+def check_arguments(parser: ap.ArgumentParser, args: ap.Namespace) -> None:
+    if args.list_test_functions:
+        problems.print_problem_names()
+    if args.create_json:
+        data_json.create_default_data_json()
+
+    if args.F:
+        try:
+            f = check_input_function(args.F[0])
+            data: sdfl_data.SDFLData = check_data(args, f)
+        except KeyError:
+            parser.error(f"Function unavailable.\n\t       Run -l to list available test functions.")
+        except ValueError as e:
+            parser.error(str(e)) # f"\nThe content of {data_json.DATA_JSON} is not valid.\n")
+
+        try:
+            run_test.run(data, verbose=args.verbose)
+        except ValueError as ve:
+            parser.error(str(ve))
+        except RuntimeError as re:
+            parser.error(str(re))
+
+    elif args.X or args.S or args.MAX or args.MIN or args.P or args.verbose:
+        parser.error("-x, -s, --max-eval, --min-step, --params, and -v require -f")
+
+def check_input_function(f: str) -> problems.Problem:
+    return problems.get_problems()[f]
+
+def check_data(args: ap.Namespace, f: problems.Problem) -> sdfl_data.SDFLData:
+    starting_step: npt.NDArray[np.float64] | None = None
+    data = data_json.import_data()
+
+    if args.X:
+        f.starting_point = np.array(args.X, dtype=np.float64)
+    if args.S:
+        starting_step = np.array(args.S, dtype=np.float64)
+    if args.MAX or args.MIN or args.P:
+        if args.MAX:
+            data[constants.KEY_MAX_EVAL] = int(args.MAX[0])
+        if args.MIN:
+            data[constants.KEY_MIN_STEP] = np.float64(args.MIN[0])
+        if args.P:
+            data[constants.KEY_THETA]   = args.P[0]
+            data[constants.KEY_GAMMA]   = args.P[1]
+            data[constants.KEY_C]       = args.P[2]
+            data[constants.KEY_ETA]     = args.P[3]
+            data[constants.KEY_EPSILON] = args.P[4]
+
+        data_json.export_data(data)
+
+    return data_json.dict_to_SDFLData(f, data, starting_step)
+
 def cli() -> None:
     usage: str = "%(prog)s [-h] [-l] [-j] [-f F [-x X [X ...]] [-s S [S ...]] [--max-eval MAX] [--min-step MIN] [--params P P P P P] [-v]]"
     parser: ap.ArgumentParser = ap.ArgumentParser(usage=usage, formatter_class=ap.RawTextHelpFormatter)
@@ -17,52 +69,6 @@ def cli() -> None:
 
     args: ap.Namespace = parser.parse_args()
     check_arguments(parser, args)
-
-def check_arguments(parser: ap.ArgumentParser, args: ap.Namespace) -> None:
-    if args.list_test_functions:
-        problems.print_problem_names()
-    if args.create_json:
-        data_json.create_default_data_json()
-    if args.F:
-        f = check_input_function(args.F[0])
-        if f == None:
-            parser.error(f"Function unavailable.\n\t       Run -l to list available test functions.")
-        data: sdfl_data.SDFLData = check_data(args, f)
-        run_test.run(data, verbose=args.verbose)
-    elif args.X or args.S or args.MAX or args.MIN or args.P or args.verbose:
-        parser.error("-x, -s, --max-eval, --min-step, --params, and -v require -f")
-
-def check_input_function(f: str) -> problems.Problem | None:
-    probs: dict[str, problems.Problem] = problems.get_problems()
-    if f in probs.keys():
-        return probs[f]
-    else:
-        return None
-
-def check_data(args: ap.Namespace, f: problems.Problem) -> sdfl_data.SDFLData:
-    starting_step: npt.NDArray[np.float64] | None = None
-    try:
-        data = data_json.import_data()
-        if args.X:
-            f.starting_point = np.array(args.X, dtype=np.float64)
-        if args.S:
-            starting_step = np.array(args.S, dtype=np.float64)
-        if args.MAX or args.MIN or args.P:
-            if args.MAX:
-                data[constants.KEY_MAX_EVAL] = int(args.MAX[0])
-            if args.MIN:
-                data[constants.KEY_MIN_STEP] = np.float64(args.MIN[0])
-            if args.P:
-                data[constants.KEY_THETA] = args.P[0]
-                data[constants.KEY_GAMMA] = args.P[1]
-                data[constants.KEY_C] = args.P[2]
-                data[constants.KEY_ETA] = args.P[3]
-                data[constants.KEY_EPSILON] = args.P[4]
-
-            data_json.export_data(data)
-    except ValueError:
-        exit(f"\nThe content of {data_json.DATA_JSON} is not valid.\n") # Valid {DATA_JSON} file example:\n{DATA_JSON_SCHEMA}\n")
-    return data_json.dict_to_SDFLData(f, data, starting_step)
 
 def set_parser_utils_group(parser: ap.ArgumentParser) -> None:
     parser.add_argument("-l", "--list-test-functions", action="store_true", help="Prints available test functions.")

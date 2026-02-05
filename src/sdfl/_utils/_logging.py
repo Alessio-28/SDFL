@@ -33,15 +33,15 @@ def _stop_default_logging(logger: logging.Logger) -> None:
     global _q_handler
     global _handler
 
-    if _q_listener:
+    if _q_listener is not None:
         _q_listener.stop()
         _q_listener = None
 
-    if _q_handler:
+    if _q_handler is not None:
         logger.removeHandler(_q_handler)
         _q_handler = None
 
-    if _handler:
+    if _handler is not None:
         _handler = None
 
     logger.setLevel(logging.NOTSET)

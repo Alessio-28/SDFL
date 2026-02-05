@@ -17,7 +17,7 @@ class SDFLData:
         self.max_eval = max_eval
         self.min_step = min_step
         self.params = params
-        if starting_step == None:
+        if starting_step is None:
             self.starting_step = np.ones(function.n, dtype=np.float64)
         else:
             self.starting_step = starting_step

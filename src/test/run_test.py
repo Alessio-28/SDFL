@@ -1,18 +1,18 @@
 import logging
-import typing
+from typing import TextIO
 
 from ..sdfl.core.sdfl import SDFL
 from ..scripts.sdfl_data import SDFLData
 
 logger: logging.Logger = logging.getLogger(__name__)
-handler: logging.StreamHandler[typing.TextIO] = logging.StreamHandler()
+handler: logging.StreamHandler[TextIO] = logging.StreamHandler()
 handler.setLevel(logging.INFO)
 logger.setLevel(logging.INFO)
 logger.addHandler(handler)
 
 def run(data: SDFLData, verbose: bool = False) -> None:
     if data.function.starting_point.size != data.function.n or data.starting_step.size != data.function.n:
-        raise ValueError(f"Problem {data.function.name} is defined in {data.function.n} dimensions.")
+        raise ValueError(f"Problem {data.function.name} requires {data.function.n}-dimensional starting point and starting step values.")
 
     if verbose:
         logger.info(f"Function: %s", data.function.name)

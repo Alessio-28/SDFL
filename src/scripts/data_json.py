@@ -18,12 +18,13 @@ def import_data() -> dict[str, Any]:
     try:
         with open(DATA_JSON, "r") as p:
             data_dict = json.load(p)
-        if validate_data_json(data_dict):
-            return data_dict
-        else:
-            raise ValueError(f"Invalid {DATA_JSON} file.")
     except OSError:
         return create_default_data_json()
+
+    if not validate_data_json(data_dict):
+        raise ValueError(f"Invalid {DATA_JSON} file.")
+
+    return data_dict
 
 
 def create_default_data_json() -> dict[str, Any]:

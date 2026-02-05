@@ -31,7 +31,7 @@ class Problem:
         if len(starting_point.shape) != 1:
             raise ValueError("starting_point must be a 1-dimensional array.")
         if starting_point.size != n:
-            raise ValueError("starting_point must have size n.")
+            raise ValueError(f"starting_point must of size {n}.")
         self.name = name
         self.starting_point = starting_point
         self.n = n
@@ -50,7 +50,7 @@ def _set_problem(problem_module: types.ModuleType) -> Problem:
 _problems: dict[str, Problem] | None = None
 def get_problems() -> dict[str, Problem]:
     global _problems
-    if _problems != None:
+    if _problems is not None:
         return _problems
     _problems = {}
     for file in os.listdir(pathlib.PurePath(_TEST_FUNCTION_DIR)):

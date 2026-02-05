@@ -48,10 +48,10 @@ def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, max_eval: int, min_s
         Precondition: `min_step > 0`.
     `starting_step` : `ndarray[float64]` | `None` (default: `None`)
         List of step values for the first iteration of the algorithm.
-        If `starting_step == None`, it gets initialised appropriately as an array of `1`s.
+        If `starting_step is None`, it gets initialised appropriately as an array of `1`s.
         Preconditions:
-            It must be a one dimensional array.
-            If `starting_step != None`,
+            It must be a one dimensional array or None.
+            If `starting_step is not None`,
             then `starting_step.size` must be equal to `starting_point.size`.
     `verbose` : `bool` (default: `False`)
         Toggles logging of intermediate and end calculations.
@@ -64,7 +64,7 @@ def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, max_eval: int, min_s
     _validate_sdfl_args(starting_point, max_eval, min_step, starting_step)
 
     n: int = starting_point.size
-    if starting_step == None:
+    if starting_step is None:
         starting_step = np.ones(n, dtype=np.float64)
 
     f_wrapper: _FunctionWrapper = _FunctionWrapper(obj_fun)
@@ -309,7 +309,7 @@ def _validate_sdfl_args(starting_point: Point, max_eval: int, min_step: np.float
 
     if len(starting_point.shape) != 1:
         raise ValueError("starting_point must be a 1-dimensional array.")
-    if starting_step != None:
+    if starting_step is not None:
         if len(starting_step.shape) != 1:
             raise ValueError("starting_step must be a 1-dimensional array.")
         if starting_point.size != starting_step.size:
