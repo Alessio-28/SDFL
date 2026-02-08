@@ -17,7 +17,7 @@
 import os
 import importlib
 import pathlib
-import types
+import numpy as np
 
 from ..sdfl.core.typing import Point, ObjectiveFunction
 
@@ -28,6 +28,8 @@ class Problem:
     feval: ObjectiveFunction
 
     def __init__(self: Problem, name: str, starting_point: Point, n: int, feval: ObjectiveFunction) -> None:
+        if not isinstance(starting_point, np.ndarray):
+            raise ValueError("Starting_point must be a ndarray.")
         if len(starting_point.shape) != 1:
             raise ValueError("starting_point must be a 1-dimensional array.")
         if starting_point.size != n:
@@ -37,31 +39,41 @@ class Problem:
         self.n = n
         self.feval = feval
 
-_TEST_FUNCTION_MODULE: str = "src.test.test_functions"
-_TEST_FUNCTION_DIR: str = _TEST_FUNCTION_MODULE.replace(".", "/")
-def _set_problem(problem_module: types.ModuleType) -> Problem:
-    return Problem(
-        name=problem_module.name,
-        starting_point=problem_module.starting_point,
-        n=problem_module.n,
-        feval=problem_module.feval
-    )
+def import_problem(problem_module: str) -> Problem:
+    try:
+        module = importlib.import_module(problem_module)
+        problem = Problem(
+            name=module.name,
+            starting_point=module.starting_point,
+            n=module.n,
+            feval=module.feval
+        )
+    except ModuleNotFoundError:
+        raise ModuleNotFoundError("Problem file not found.")
+    except ImportError:
+        raise ImportError("Problem file does not have the required variables/function.")
+
+    return problem
 
 _problems: dict[str, Problem] | None = None
-def get_problems() -> dict[str, Problem]:
+def _get_problems(problem_module: str) -> dict[str, Problem]:
     global _problems
     if _problems is not None:
         return _problems
     _problems = {}
-    for file in os.listdir(pathlib.PurePath(_TEST_FUNCTION_DIR)):
+    for file in os.listdir(pathlib.PurePath(problem_module.replace(".", "/"))):
         filename = file.split(".")
         if len(filename) == 2 and filename[1] == "py":
-            module = importlib.import_module(f"{_TEST_FUNCTION_MODULE}.{filename[0]}")
-            _problems[module.name] = _set_problem(module)
+            problem = import_problem(f"{problem_module}.{filename[0]}")
+            _problems[problem.name] = problem
     return _problems
 
+def get_default_problems() -> dict[str, Problem]:
+    _TEST_FUNCTION_MODULE: str = "src.test.problems"
+    return _get_problems(_TEST_FUNCTION_MODULE)
+
 def get_problem_names() -> list[str]:
-   return list(get_problems().keys())
+   return list(get_default_problems().keys())
 
 def print_problem_names() -> None:
     problems: list[str] = get_problem_names()

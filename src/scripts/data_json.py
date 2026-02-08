@@ -5,7 +5,7 @@ import numpy.typing as npt
 
 from . import sdfl_data
 from . import constants
-from ..test import problems
+from ..test import problem_manager
 from ..sdfl.core import parameters
 
 DATA_JSON: str = "data.json"
@@ -21,7 +21,7 @@ def import_data() -> dict[str, Any]:
     except OSError:
         return create_default_data_json()
 
-    if not validate_data_json(data_dict):
+    if not _validate_data_json(data_dict):
         raise ValueError(f"Invalid {DATA_JSON} file.")
 
     return data_dict
@@ -40,7 +40,7 @@ def create_default_data_json() -> dict[str, Any]:
     export_data(data)
     return data
 
-def validate_data_json(data_dict: dict[str, Any]) -> bool:
+def _validate_data_json(data_dict: dict[str, Any]) -> bool:
     INT = (np.integer,)
     INT_OR_FLOAT = (np.integer, np.floating)
     valid_data_dict = {
@@ -64,9 +64,9 @@ def validate_data_json(data_dict: dict[str, Any]) -> bool:
 
     return True
 
-def dict_to_SDFLData(f: problems.Problem, data_dict: dict[str, Any], starting_step: npt.NDArray[np.float64] | None = None) -> sdfl_data.SDFLData:
+def dict_to_SDFLData(p: problem_manager.Problem, data_dict: dict[str, Any], starting_step: npt.NDArray[np.float64] | None = None) -> sdfl_data.SDFLData:
     data = sdfl_data.SDFLData(
-        function=f,
+        problem=p,
         max_eval=data_dict[constants.KEY_MAX_EVAL],
         min_step=data_dict[constants.KEY_MIN_STEP],
         params=parameters.Parameters(

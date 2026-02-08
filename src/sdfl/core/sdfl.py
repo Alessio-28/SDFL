@@ -307,9 +307,13 @@ class SDFLResult:
 def _validate_sdfl_args(starting_point: Point, max_eval: int, min_step: np.float64, starting_step: npt.NDArray[np.float64] | None = None) -> None:
     """Precondition checks for `SDFL`."""
 
+    if not isinstance(starting_point, np.ndarray): # pyright: ignore[reportUnnecessaryIsInstance]
+        raise ValueError("starting_point must be a ndarray.") # pyright: ignore[reportUnreachable]
     if len(starting_point.shape) != 1:
         raise ValueError("starting_point must be a 1-dimensional array.")
     if starting_step is not None:
+        if not isinstance(starting_step, np.ndarray): # pyright: ignore[reportUnnecessaryIsInstance]
+            raise ValueError("starting_step must be a ndarray.") # pyright: ignore[reportUnreachable]
         if len(starting_step.shape) != 1:
             raise ValueError("starting_step must be a 1-dimensional array.")
         if starting_point.size != starting_step.size:

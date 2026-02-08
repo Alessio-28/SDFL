@@ -5,43 +5,45 @@ import numpy.typing as npt
 from . import constants
 from . import data_json
 from . import sdfl_data
-from ..test import run_test, problems
+from . import problem_from_file
+from ..test import run_test, problem_manager as pm
 from ..sdfl.core.parameters import Parameters
 
 def check_arguments(parser: ap.ArgumentParser, args: ap.Namespace) -> None:
-    if args.list_test_functions:
-        problems.print_problem_names()
+    if args.list_problems:
+        pm.print_problem_names()
     if args.create_json:
         data_json.create_default_data_json()
+    if args.create_template_problem:
+        problem_from_file.copy_template()
 
-    if args.F:
+    if args.PROBLEM or args.from_file:
         try:
-            f = check_input_function(args.F[0])
-            data: sdfl_data.SDFLData = check_data(args, f)
-        except KeyError:
-            parser.error(f"Function unavailable.\n\t       Run -l to list available test functions.")
-        except ValueError as e:
-            parser.error(str(e)) # f"\nThe content of {data_json.DATA_JSON} is not valid.\n")
+            if args.PROBLEM:
+                p = check_input_problem(args.PROBLEM[0])
+            else:
+                p = problem_from_file.load_problem()
 
-        try:
+            data = check_args(args, p)
             run_test.run(data, verbose=args.verbose)
-        except ValueError as ve:
-            parser.error(str(ve))
-        except RuntimeError as re:
-            parser.error(str(re))
+        except (ImportError, KeyError, ValueError, RuntimeError) as e:
+            parser.error(str(e))
 
     elif args.X or args.S or args.MAX or args.MIN or args.P or args.verbose:
-        parser.error("-x, -s, --max-eval, --min-step, --params, and -v require -f")
+        parser.error("-x, -s, --max-eval, --min-step, --params, and -v require -p or --from-file.")
 
-def check_input_function(f: str) -> problems.Problem:
-    return problems.get_problems()[f]
+def check_input_problem(p: str) -> pm.Problem:
+    try:
+        return pm.get_default_problems()[p]
+    except KeyError:
+        raise KeyError("Problem not available.\n\t       Run -l to list available problems.")
 
-def check_data(args: ap.Namespace, f: problems.Problem) -> sdfl_data.SDFLData:
+def check_args(args: ap.Namespace, p: pm.Problem) -> sdfl_data.SDFLData:
     starting_step: npt.NDArray[np.float64] | None = None
     data = data_json.import_data()
 
     if args.X:
-        f.starting_point = np.array(args.X, dtype=np.float64)
+        p.starting_point = np.array(args.X, dtype=np.float64)
     if args.S:
         starting_step = np.array(args.S, dtype=np.float64)
     if args.MAX or args.MIN or args.P:
@@ -58,10 +60,10 @@ def check_data(args: ap.Namespace, f: problems.Problem) -> sdfl_data.SDFLData:
 
         data_json.export_data(data)
 
-    return data_json.dict_to_SDFLData(f, data, starting_step)
+    return data_json.dict_to_SDFLData(p, data, starting_step)
 
 def cli() -> None:
-    usage: str = "%(prog)s [-h] [-l] [-j] [-f F [-x X [X ...]] [-s S [S ...]] [--max-eval MAX] [--min-step MIN] [--params P P P P P] [-v]]"
+    usage: str = "%(prog)s [-h] [-l] [-j] [(-p PROBLEM | --from-file) [-x X [X ...]] [-s S [S ...]] [--max-eval MAX] [--min-step MIN] [--params P P P P P] [-v]]"
     parser: ap.ArgumentParser = ap.ArgumentParser(usage=usage, formatter_class=ap.RawTextHelpFormatter)
 
     set_parser_utils_group(parser)
@@ -71,8 +73,9 @@ def cli() -> None:
     check_arguments(parser, args)
 
 def set_parser_utils_group(parser: ap.ArgumentParser) -> None:
-    parser.add_argument("-l", "--list-test-functions", action="store_true", help="Prints available test functions.")
+    parser.add_argument("-l", "--list-problems", action="store_true", help="Prints available problems.")
     parser.add_argument("-j", "--create-json", action="store_true", help=f"Creates default {data_json.DATA_JSON}")
+    parser.add_argument("-t", "--create-template-problem", action="store_true", help=f"Creates default {problem_from_file.PROBLEM_PY}")
 
 def set_parser_run_group(parser: ap.ArgumentParser) -> None:
     description: str = (
@@ -80,20 +83,25 @@ def set_parser_run_group(parser: ap.ArgumentParser) -> None:
         "Values of the previous run of the program are saved in that same file.\n"
         "Starting point and starting step must be of the same size."
     )
+    params_help: str = (
+        "Parameters must be written in the following order: theta gamma c eta epsilon.\n"
+            f"{Parameters._THETA_LOWER_BOUND} < theta < {Parameters._THETA_UPPER_BOUND}, "
+            f"gamma > {Parameters._GAMMA_LOWER_BOUND}, "
+            f"c > {Parameters._C_LOWER_BOUND}, "
+            f"eta > {Parameters._ETA_LOWER_BOUND}, "
+            f"epsilon > {Parameters._EPSILON_LOWER_BOUND}"
+    )
+
     run_group = parser.add_argument_group(title="algorithm options", description=description)
-    run_group.add_argument("-f", "--function", nargs=1, type=str, dest="F", help="Test function to run.")
-    run_group.add_argument("-x", "--point", nargs="+", type=np.float64, dest="X", help="Starting point of the algorigthm. List of values separated by blank spaces.\nIf not used, defualt starting point for the given function is used.")
-    run_group.add_argument("-s", "--steps", nargs="+", type=np.float64, dest="S", help="Starting step of the algorigthm. List of values separated by blank spaces.\nIf not used, starting steps get initialised appropriately.")
-    run_group.add_argument("--max-eval", nargs=1, type=int, dest="MAX", help="Max number of function evaluations before SDFL terminates.")
+
+    problem_group = run_group.add_mutually_exclusive_group()
+    problem_group.add_argument("-p", "--problem", nargs=1, type=str, dest="PROBLEM", help="Problem to run.")
+    problem_group.add_argument("--from-file", action="store_true", help=f"A problem can be defined in {problem_from_file.PROBLEM_PY} file and then tested by the algorithm.")
+    
+    run_group.add_argument("-x", "--point", nargs="+", type=np.float64, dest="X", help="Starting point of the algorigthm. List of values separated by blank spaces.\nIf not used, defualt starting point for the given problem is used.")
+    run_group.add_argument("-s", "--steps", nargs="+", type=np.float64, dest="S", help="Starting step values of the algorigthm. List of values separated by blank spaces.\nIf not used, starting steps get initialised appropriately.")
+    run_group.add_argument("--max-eval", nargs=1, type=int, dest="MAX", help="Maximum number of function evaluations before SDFL terminates.")
     run_group.add_argument("--min-step", nargs=1, type=np.float64, dest="MIN", help="Minimum step value before SDFL terminates.")
 
-    help: str = (
-        "Parameters must be written in the following order: theta gamma c eta epsilon.\n"
-        f"{Parameters._THETA_LOWER_BOUND} < theta < {Parameters._THETA_UPPER_BOUND}, "
-        f"gamma > {Parameters._GAMMA_LOWER_BOUND}, "
-        f"c > {Parameters._C_LOWER_BOUND}, "
-        f"eta > {Parameters._ETA_LOWER_BOUND}, "
-        f"epsilon > {Parameters._EPSILON_LOWER_BOUND}"
-    )
-    run_group.add_argument("--params", nargs=5, type=np.float64, dest="P", help=help)
+    run_group.add_argument("--params", nargs=5, type=np.float64, dest="P", help=params_help)
     run_group.add_argument("-v", "--verbose", action="store_true", help="Print intermediate results of the algorithm.")

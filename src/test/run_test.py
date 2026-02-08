@@ -11,13 +11,13 @@ logger.setLevel(logging.INFO)
 logger.addHandler(handler)
 
 def run(data: SDFLData, verbose: bool = False) -> None:
-    if data.function.starting_point.size != data.function.n or data.starting_step.size != data.function.n:
-        raise ValueError(f"Problem {data.function.name} requires {data.function.n}-dimensional starting point and starting step values.")
+    if data.problem.starting_point.size != data.problem.n or data.starting_step.size != data.problem.n:
+        raise ValueError(f"Problem {data.problem.name} requires {data.problem.n}-dimensional starting point and starting step values.")
 
     if verbose:
-        logger.info(f"Function: %s", data.function.name)
+        logger.info(f"Problem: %s", data.problem.name)
 
-    result = SDFL(data.function.feval, data.function.starting_point, data.max_eval, data.min_step, data.params, data.starting_step, verbose)
+    result = SDFL(data.problem.feval, data.problem.starting_point, data.max_eval, data.min_step, data.params, data.starting_step, verbose)
 
     if not verbose:
-        print(f"Function: {data.function.name}\nResult:\n{result}")
+        print(f"Problem: {data.problem.name}\nResult:\n{result}")
