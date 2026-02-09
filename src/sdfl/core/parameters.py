@@ -1,3 +1,8 @@
+"""Contains `Parameters` class that handles
+parameters used in `SDFL` algorithm and computations
+related to them.
+"""
+
 import numpy as np
 
 class Parameters:

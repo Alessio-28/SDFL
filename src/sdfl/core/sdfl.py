@@ -1,3 +1,27 @@
+"""Main `SDFL` module.
+
+See: `https://arxiv.org/abs/2508.00495v1`
+
+`Public functions`
+--------
+- `SDFL`: Stochastic Derivative-Free Linesearch-based algorithm.
+
+`Public classes`
+--------
+- `SDFLResult`
+
+`Public objects`
+--------
+- `sdfl_logger`: logger for `SDFL` function.
+- `sdfl_logging_helper`: sets log messages format.
+
+`Logging`
+--------
+This module uses predifined logging functionalities
+but other ways of logging can be defined using:
+- `sdfl_logger`
+- `sdfl_logging_helper`
+"""
 import numpy as np
 import numpy.typing as npt
 from enum import Enum
@@ -6,17 +30,36 @@ import logging
 
 from .typing import Point, ObjectiveFunction
 from .parameters import Parameters
-from .._utils._logging import _start_default_logging, _stop_default_logging
+from ..utils.logging import SDFLLoggingHelper, _SDFLDefaultLogging
 
 sdfl_logger: logging.Logger = logging.getLogger(__name__)
 """Logger of `SDFL`
 
 Initialised at import. Its parent has `NullHandler` attached.
-Logging level for `SDFL`: `INFO`.
-
-If `SDFL` has `verbose == True` and no other handler is attached to `sdfl_logger`,
+--------
+Logging level: `INFO`.
+If `SDFL` argument `verbose == True` and no other handler is attached to `sdfl_logger`,
 `StreamHandler` is attached lazily using `QueueHandler` and `QueueListener`
 and it is detached after the algorithm terminates.
+--------
+Intermediate logging messages contain (in this order):
+the `current minimum` point, the `objective function` evaluated
+at the current minimum point, and the `current step values`.
+The last logging message contains (in this order):
+the `minimum` point, the `objective function` evaluated
+at the minimum point, and the number of evaluations.
+--------
+To change the message format refer to
+variable `sdfl_logging_helper` and class `SDFLLoggingHelper`.
+"""
+
+sdfl_logging_helper: SDFLLoggingHelper = SDFLLoggingHelper()
+"""Sets logging messages format.
+
+Use `set_msg()` and `set_end_msg()` methods
+to change logging messages format, if needed.
+
+See `SDFLLoggingHelper`.
 """
 
 def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, max_eval: int, min_step: np.float64, params: Parameters, starting_step: npt.NDArray[np.float64] | None = None, verbose: bool = False) -> SDFLResult:
@@ -82,17 +125,17 @@ def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, max_eval: int, min_s
     fun_eval_at_cur_point: np.float64 = F(current_point)
     prev_dir_res: _DirectionResult = _DirectionResult.FAILURE
 
-    if verbose:
-        _start_default_logging(sdfl_logger)
-        sdfl_logger.info("x = %s\nF(x) = %g\nStep = %s\n", current_point, fun_eval_at_cur_point, tentative_step)
-
     try:
+        if verbose:
+            _SDFLDefaultLogging.start_default_logging(sdfl_logger, sdfl_logging_helper)
+            sdfl_logging_helper._log(sdfl_logger, current_point, fun_eval_at_cur_point, tentative_step)
+
         while f_wrapper.get_nfev() < max_eval and max_tentative_step >= min_step:
             new_point_found: bool = False
             np.maximum(tentative_step, eta * max_tentative_step, out=tentative_step)
 
             for i in range(n):
-                if prev_dir_res != _DirectionResult.FAILURE:
+                if prev_dir_res is not _DirectionResult.FAILURE:
                     fun_eval_at_cur_point = F(current_point)
 
                 step: np.float64 = tentative_step[i]
@@ -100,7 +143,7 @@ def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, max_eval: int, min_s
 
                 dir_res, fun_eval_at_direction = _choose_direction(F, current_point, fun_eval_at_cur_point, step, i, bound)
 
-                if dir_res == _DirectionResult.FAILURE:
+                if dir_res is _DirectionResult.FAILURE:
                     accepted_step[i] = 0
                 else:
                     accepted_step[i] = _line_search(F, current_point, fun_eval_at_direction, dir_res.value, step, i, bound)
@@ -109,7 +152,7 @@ def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, max_eval: int, min_s
                 prev_dir_res = dir_res
 
             if verbose:
-                sdfl_logger.info("x = %s\nF(x) = %g\nStep = %s\n", current_point, fun_eval_at_cur_point, tentative_step)
+                sdfl_logging_helper._log(sdfl_logger, current_point, fun_eval_at_cur_point, tentative_step)
 
             if new_point_found:
                 np.maximum(accepted_step, tentative_step, out=tentative_step)
@@ -120,9 +163,9 @@ def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, max_eval: int, min_s
         result: SDFLResult = SDFLResult(current_point, fun_eval_at_cur_point, f_wrapper.get_nfev())
 
         if verbose:
-            sdfl_logger.info("Result:\n%s\n", result)
+            sdfl_logging_helper._end_log(sdfl_logger, current_point, fun_eval_at_cur_point, tentative_step)
     finally:
-        _stop_default_logging(sdfl_logger)
+        _SDFLDefaultLogging.stop_default_logging(sdfl_logger, sdfl_logging_helper)
 
     return result
 

@@ -12,7 +12,7 @@ logger.addHandler(handler)
 
 def run(data: SDFLData, verbose: bool = False) -> None:
     if data.problem.starting_point.size != data.problem.n or data.starting_step.size != data.problem.n:
-        raise ValueError(f"Problem {data.problem.name} requires {data.problem.n}-dimensional starting point and starting step values.")
+        raise ValueError(f"Problem {data.problem.name} requires starting_point and starting_step of size {data.problem.n}.")
 
     if verbose:
         logger.info(f"Problem: %s", data.problem.name)
