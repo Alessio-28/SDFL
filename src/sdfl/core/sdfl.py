@@ -17,9 +17,8 @@ See: `https://arxiv.org/abs/2508.00495v1`
 
 `Logging`
 --------
-This module uses predifined logging functionalities
+This module has a fallback logging utility
 but other ways of logging can be defined using:
-- `sdfl_logger`
 - `sdfl_logging_helper`
 """
 import numpy as np
@@ -31,15 +30,18 @@ import logging
 from .typing import Point, ObjectiveFunction
 from .parameters import Parameters
 from ..utils.logging import SDFLLoggingHelper, _SDFLDefaultLogging
+from ..utils.function_wrapper import _FunctionWrapper
 
-sdfl_logger: logging.Logger = logging.getLogger(__name__)
-"""Logger of `SDFL`
+sdfl_logging_helper: SDFLLoggingHelper = SDFLLoggingHelper(logging.getLogger(__name__))
+"""Logger helper for `SDFL`.
 
-Initialised at import. Its parent has `NullHandler` attached.
+Initialised at import.
+To get the logger of this moduel call `get_logger()`.
+Its parent has `NullHandler` attached.
 --------
 Logging level: `INFO`.
-If `SDFL` argument `verbose == True` and no other handler is attached to `sdfl_logger`,
-`StreamHandler` is attached lazily using `QueueHandler` and `QueueListener`
+If `SDFL` argument `verbose == True` and no other handler is attached to the logger,
+`StreamHandler` will be attached using `QueueHandler` and `QueueListener`
 and it is detached after the algorithm terminates.
 --------
 Intermediate logging messages contain (in this order):
@@ -49,17 +51,10 @@ The last logging message contains (in this order):
 the `minimum` point, the `objective function` evaluated
 at the minimum point, and the number of evaluations.
 --------
-To change the message format refer to
-variable `sdfl_logging_helper` and class `SDFLLoggingHelper`.
-"""
-
-sdfl_logging_helper: SDFLLoggingHelper = SDFLLoggingHelper()
-"""Sets logging messages format.
+To change the message format refer to class `SDFLLoggingHelper`.
 
 Use `set_msg()` and `set_end_msg()` methods
 to change logging messages format, if needed.
-
-See `SDFLLoggingHelper`.
 """
 
 def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, max_eval: int, min_step: np.float64, params: Parameters, starting_step: npt.NDArray[np.float64] | None = None, verbose: bool = False) -> SDFLResult:
@@ -79,8 +74,8 @@ def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, max_eval: int, min_s
         Starting point of the algorithm.
         Preconditions:
             It must be a one dimensional array.
-            If `starting_step` is passed as argument,
-            `starting_point.size` must be equal to `starting_step.size`.
+            If `starting_step is not None`,
+            then `starting_point.size` must be equal to `starting_step.size`.
     `params` : `Parameters`
         See `Parameters` class.
     `max_eval` : `int`
@@ -89,15 +84,15 @@ def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, max_eval: int, min_s
     `min_step` : `float64`
         Minimum value of maximum of steps.
         Precondition: `min_step > 0`.
-    `starting_step` : `ndarray[float64]` | `None` (default: `None`)
+    `starting_step` : `ndarray[float64] | None` (default: `None`)
         List of step values for the first iteration of the algorithm.
         If `starting_step is None`, it gets initialised appropriately as an array of `1`s.
         Preconditions:
-            It must be a one dimensional array or None.
             If `starting_step is not None`,
-            then `starting_step.size` must be equal to `starting_point.size`.
+            then it must be a one dimensional array and
+            `starting_step.size` must be equal to `starting_point.size`.
     `verbose` : `bool` (default: `False`)
-        Toggles logging of intermediate and end calculations.
+        Toggles logging of intermediate and end results.
 
     `Return`
     --------
@@ -127,8 +122,9 @@ def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, max_eval: int, min_s
 
     try:
         if verbose:
-            _SDFLDefaultLogging.start_default_logging(sdfl_logger, sdfl_logging_helper)
-            sdfl_logging_helper._log(sdfl_logger, current_point, fun_eval_at_cur_point, tentative_step)
+            if _SDFLDefaultLogging.use_default_logging(sdfl_logging_helper):
+                _SDFLDefaultLogging.start_default_logging(sdfl_logging_helper)
+            sdfl_logging_helper.log_msg(current_point, fun_eval_at_cur_point, tentative_step)
 
         while f_wrapper.get_nfev() < max_eval and max_tentative_step >= min_step:
             new_point_found: bool = False
@@ -152,7 +148,7 @@ def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, max_eval: int, min_s
                 prev_dir_res = dir_res
 
             if verbose:
-                sdfl_logging_helper._log(sdfl_logger, current_point, fun_eval_at_cur_point, tentative_step)
+                sdfl_logging_helper.log_msg(current_point, fun_eval_at_cur_point, tentative_step)
 
             if new_point_found:
                 np.maximum(accepted_step, tentative_step, out=tentative_step)
@@ -163,9 +159,9 @@ def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, max_eval: int, min_s
         result: SDFLResult = SDFLResult(current_point, fun_eval_at_cur_point, f_wrapper.get_nfev())
 
         if verbose:
-            sdfl_logging_helper._end_log(sdfl_logger, current_point, fun_eval_at_cur_point, tentative_step)
+                sdfl_logging_helper.log_end_msg(result.x, result.f, result.nfev)
     finally:
-        _SDFLDefaultLogging.stop_default_logging(sdfl_logger, sdfl_logging_helper)
+        _SDFLDefaultLogging.stop_default_logging(sdfl_logging_helper)
 
     return result
 
@@ -212,84 +208,8 @@ def _line_search(obj_fun: ObjectiveFunction, point: Point, fun_eval_at_point: np
     point[axis] = elem + power2*step
     return step_size * power2
 
-class _FunctionWrapper:
-    """Objective function wrapper, counts function evaluations.
-
-    `Attributes`
-    --------
-    `_obj_fun` : `ObjectiveFunction`
-        Objecive function.
-    `_nfev` : `int`
-        Counter of objective function evaluations.
-        Gets initialised to `0` by the constructor.
-
-    `Methods`
-    --------
-    `eval` : `(Point) -> float64`
-        Evaluates the objective function at the given point.
-        Increases the evaluation counter by `1`.
-    `get_obj_fun` : `() -> ObjectiveFunction`
-        _obj_fun getter.
-    `get_nfev` : `() -> int`
-        _nfev getter.
-    """
-
-    _obj_fun: ObjectiveFunction
-    _nfev: int
-
-    def __init__(self: _FunctionWrapper, obj_fun: ObjectiveFunction) -> None:
-        """Initialises the wrapper and sets the counter to `0`.
-
-        Arguments
-        --------
-        `obj_fun` : `ObjectiveFunction`
-            Function to assign to the wrapper.
-        """
-
-        self._obj_fun = obj_fun
-        self._nfev = 0
-
-    def eval(self: _FunctionWrapper, x: Point) -> np.float64:
-        """Evaluates the objective function.
-
-        Evaluates the objective function at `x`
-        and increases the evaluations counter by `1`.
-        Raises `RuntimeError` if the result of evaluation is `NaN` or `inf`.
-
-        `Arguments`
-        --------
-        `x` : `Point`
-            The point at which the objective function gets evaluated.
-
-        `Return`
-        --------
-        `result` : `float64`
-            The result of the evaluation.
-        """
-
-        self._nfev += 1
-        res: np.float64 = self._obj_fun(x)
-
-        if not np.isfinite(res):
-            if np.isnan(res):
-                raise RuntimeError(f"Evaluation of objective function at point {x} results in NaN. Evaluation {self._nfev}")
-            elif np.isposinf(res):
-                raise RuntimeError(f"Evaluation of objective function at point {x} results in +inf. Evaluation {self._nfev}")
-            elif np.isneginf(res):
-                raise RuntimeError(f"Evaluation of objective function at point {x} results in -inf. Evaluation {self._nfev}")
-
-        return res
-
-    def get_obj_fun(self: _FunctionWrapper) -> ObjectiveFunction:
-        """_obj_fun getter."""
-        return self._obj_fun
-
-    def get_nfev(self: _FunctionWrapper) -> int:
-        """_nfev getter."""
-        return self._nfev
-
 class _DirectionResult(Enum):
-    """Result of `_compute_direction()`.
+    """Result of `_choose_direction()`.
 
     `Values`
     --------
@@ -302,19 +222,8 @@ class _DirectionResult(Enum):
     """
 
     POSITIVE =  1
-    """`POSITIVE` = `1`
-        Result of `_compute_direction()` found on positive direction along the axis.
-    """
-
     NEGATIVE = -1
-    """`NEGATIVE` = `-1`
-        Result of `_compute_direction()` found on negative direction along the axis.
-    """
-
     FAILURE  =  0
-    """`FAiLURE` = `0`
-        `_compute_direction()` terminated without finding a suitable result.
-    """
 
 class SDFLResult:
     """Contains the result of `SDFL`.
