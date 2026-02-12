@@ -8,7 +8,6 @@
 from collections.abc import Mapping
 import logging
 from logging.handlers import QueueHandler, QueueListener
-import typing
 import sys
 import queue
 
@@ -32,11 +31,6 @@ class SDFLLoggingHelper:
         Logs `msg` with `logger` at level `logger.level`.
     `log_end_msg` : Same signature as `logging.Logger.log()`, except for arguments `level` and `msg`.
         Logs `end_msg` with `logger` at level `logger.level`.
-    `get_logger` : `() -> logging.Logger`
-    `get_msg` : `() -> str`
-    `get_end_msg` : `() -> str`
-    `set_msg` : `(str) -> None`
-    `set_end_msg` : `(str) -> None`
     """
     logger: logging.Logger
     msg: str
@@ -49,8 +43,8 @@ class SDFLLoggingHelper:
 
     def log(self: SDFLLoggingHelper, msg: object, *args: object, exc_info: logging._ExcInfoType = None, stack_info: bool = False, stacklevel: int = 1, extra: Mapping[str, object] | None = None) -> None:
         self.logger.log(
-            self.logger.level,
-            msg=msg,
+            self.logger.getEffectiveLevel(),
+            msg,
             *args,
             exc_info=exc_info,
             stack_info=stack_info,
@@ -60,7 +54,7 @@ class SDFLLoggingHelper:
 
     def log_msg(self: SDFLLoggingHelper, *args: object, exc_info: logging._ExcInfoType = None, stack_info: bool = False, stacklevel: int = 1, extra: Mapping[str, object] | None = None) -> None:
         self.log(
-            msg=self.msg,
+            self.msg,
             *args,
             exc_info=exc_info,
             stack_info=stack_info,
@@ -70,28 +64,13 @@ class SDFLLoggingHelper:
 
     def log_end_msg(self: SDFLLoggingHelper, *args: object, exc_info: logging._ExcInfoType = None, stack_info: bool = False, stacklevel: int = 1, extra: Mapping[str, object] | None = None) -> None:
         self.log(
-            msg=self.end_msg,
+            self.end_msg,
             *args,
             exc_info=exc_info,
             stack_info=stack_info,
             stacklevel=stacklevel,
             extra=extra
         )
-
-    def get_logger(self: SDFLLoggingHelper) -> logging.Logger:
-        return self.logger
-
-    def get_msg(self: SDFLLoggingHelper) -> str:
-        return self.msg
-
-    def get_end_msg(self: SDFLLoggingHelper) -> str:
-        return self.end_msg
-
-    def set_msg(self: SDFLLoggingHelper, msg: str) -> None:
-        self.msg = msg
-
-    def set_end_msg(self: SDFLLoggingHelper, end_msg: str) -> None:
-        self.end_msg = end_msg
 
 class QueueHandlerHelper:
     _q: queue.Queue[logging.LogRecord]
@@ -100,23 +79,30 @@ class QueueHandlerHelper:
     _q_listener: QueueListener
     _logger: logging.Logger
 
-    def __init__(self: QueueHandlerHelper, logging_level: int, handler: logging.Handler, logger: logging.Logger) -> None:
-        self._q = queue.Queue()
+    _listening: bool
 
+    def __init__(self: QueueHandlerHelper, logger: logging.Logger, handler: logging.Handler) -> None:
+        self._q = queue.Queue()
         self._handler = handler
         self._q_handler = QueueHandler(self._q)
         self._q_listener = QueueListener(self._q, self._handler)
         self._logger = logger
-        
-        self._handler.setLevel(logging_level)
-        self._q_handler.setLevel(logging_level)
-        self._logger.setLevel(logging_level)
+        self._listening = False
+
+        self._handler.setLevel(logger.getEffectiveLevel())
+        self._q_handler.setLevel(logger.getEffectiveLevel())
         self._logger.addHandler(self._q_handler)
 
     def start(self: QueueHandlerHelper) -> None:
+        if self._listening:
+            return
+        self._listening = True
         self._q_listener.start()
 
     def stop(self: QueueHandlerHelper) -> None:
+        if not self._listening:
+            return
+        self._listening = False
         self._q_listener.stop()
 
     def close(self: QueueHandlerHelper) -> None:
@@ -135,22 +121,28 @@ class _SDFLFallbackLogging:
     _msg: str = "x = %s\nf(x) = %g\nSteps = %s\n"
     _end_msg: str = "Result:\nx = %s\nf(x) = %g\nnfev = %d\n"
     _logging_level: int = logging.INFO
-    _handler: logging.StreamHandler[typing.TextIO] = logging.StreamHandler(sys.stdout)
+
+    _running: bool = False
 
     @classmethod
     def use_fallback_logging(cls, helper: SDFLLoggingHelper) -> bool:
-        return len(helper.get_logger().handlers) == 0
+        return len(helper.logger.handlers) == 0
 
     @classmethod
     def start_fallback_logging(cls, helper: SDFLLoggingHelper) -> None:
+        if cls._running:
+            return
+        cls._running = True
+
         cls._prepare_helper(helper)
-        cls._q_helper = QueueHandlerHelper(cls._logging_level, cls._handler, helper.get_logger())
+        cls._q_helper = QueueHandlerHelper(helper.logger, logging.StreamHandler(sys.stdout))
         cls._q_helper.start()
 
     @classmethod
     def stop_fallback_logging(cls, helper: SDFLLoggingHelper) -> None:
-        if cls._q_helper is None:
+        if not cls._running or cls._q_helper is None:
             return
+        cls._running = True
 
         cls._q_helper.stop()
         cls._q_helper.close()
@@ -160,19 +152,19 @@ class _SDFLFallbackLogging:
 
     @classmethod
     def _prepare_helper(cls, helper: SDFLLoggingHelper) -> None:
-        cls._prev_log_level = helper.get_logger().level
-        cls._prev_msg = helper.get_msg()
-        cls._prev_end_msg = helper.get_end_msg()
+        cls._prev_log_level = helper.logger.getEffectiveLevel()
+        cls._prev_msg = helper.msg
+        cls._prev_end_msg = helper.end_msg
         
-        helper.get_logger().setLevel(cls._logging_level)
-        helper.set_msg(cls._msg)
-        helper.set_end_msg(cls._end_msg)
+        helper.logger.setLevel(cls._logging_level)
+        helper.msg = cls._msg
+        helper.end_msg = cls._end_msg
 
     @classmethod
     def _restore_helper(cls, helper: SDFLLoggingHelper) -> None:
-        helper.get_logger().setLevel(cls._prev_log_level)
-        helper.set_msg(cls._prev_msg)
-        helper.set_end_msg(cls._prev_end_msg)
+        helper.logger.setLevel(cls._prev_log_level)
+        helper.msg = cls._prev_msg
+        helper.end_msg = cls._prev_end_msg
         
         cls._prev_log_level = 0
         cls._prev_msg = ""

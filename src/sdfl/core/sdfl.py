@@ -36,7 +36,7 @@ sdfl_logging_helper: SDFLLoggingHelper = SDFLLoggingHelper(logging.getLogger(__n
 """Logger helper for `SDFL`.
 
 Initialised at import.
-To get the logger of this moduel call `get_logger()`.
+`sdfl_logging_helper` has this module's logger as attribute.
 Its parent has `NullHandler` attached.
 --------
 Logging level: `INFO`.
@@ -52,9 +52,6 @@ the `minimum` point, the `objective function` evaluated
 at the minimum point, and the number of evaluations.
 --------
 To change the message format refer to class `SDFLLoggingHelper`.
-
-Use `set_msg()` and `set_end_msg()` methods
-to change logging messages format, if needed.
 """
 
 def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, max_eval: int, min_step: np.float64, params: Parameters, starting_step: npt.NDArray[np.float64] | None = None, verbose: bool = False) -> SDFLResult:
@@ -263,6 +260,7 @@ def _validate_sdfl_args(starting_point: Point, max_eval: int, min_step: np.float
         raise ValueError("starting_point must be a ndarray.") # pyright: ignore[reportUnreachable]
     if len(starting_point.shape) != 1:
         raise ValueError("starting_point must be a 1-dimensional array.")
+
     if starting_step is not None:
         if not isinstance(starting_step, np.ndarray): # pyright: ignore[reportUnnecessaryIsInstance]
             raise ValueError("starting_step must be a ndarray.") # pyright: ignore[reportUnreachable]
@@ -272,6 +270,7 @@ def _validate_sdfl_args(starting_point: Point, max_eval: int, min_step: np.float
             raise ValueError("starting_point and starting_step must have the same size.")
         if np.any(starting_step <= 0):
             raise ValueError("starting_step must be an array of positive real numbers.")
+
     if max_eval <= 0:
         raise ValueError("max_eval must be a positive integer.")
     if min_step <= 0:
