@@ -125,7 +125,7 @@ class QueueHandlerHelper:
         self._handler.close()
         self._q.shutdown()
 
-class _SDFLDefaultLogging:
+class _SDFLFallbackLogging:
     _prev_log_level: int = 0
     _prev_msg: str = ""
     _prev_end_msg: str = ""
@@ -138,17 +138,17 @@ class _SDFLDefaultLogging:
     _handler: logging.StreamHandler[typing.TextIO] = logging.StreamHandler(sys.stdout)
 
     @classmethod
-    def use_default_logging(cls, helper: SDFLLoggingHelper) -> bool:
+    def use_fallback_logging(cls, helper: SDFLLoggingHelper) -> bool:
         return len(helper.get_logger().handlers) == 0
 
     @classmethod
-    def start_default_logging(cls, helper: SDFLLoggingHelper) -> None:
+    def start_fallback_logging(cls, helper: SDFLLoggingHelper) -> None:
         cls._prepare_helper(helper)
         cls._q_helper = QueueHandlerHelper(cls._logging_level, cls._handler, helper.get_logger())
         cls._q_helper.start()
 
     @classmethod
-    def stop_default_logging(cls, helper: SDFLLoggingHelper) -> None:
+    def stop_fallback_logging(cls, helper: SDFLLoggingHelper) -> None:
         if cls._q_helper is None:
             return
 

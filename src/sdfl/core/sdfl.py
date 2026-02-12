@@ -29,7 +29,7 @@ import logging
 
 from .typing import Point, ObjectiveFunction
 from .parameters import Parameters
-from ..utils.logging import SDFLLoggingHelper, _SDFLDefaultLogging
+from ..utils.logging import SDFLLoggingHelper, _SDFLFallbackLogging
 from ..utils.function_wrapper import _FunctionWrapper
 
 sdfl_logging_helper: SDFLLoggingHelper = SDFLLoggingHelper(logging.getLogger(__name__))
@@ -122,8 +122,8 @@ def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, max_eval: int, min_s
 
     try:
         if verbose:
-            if _SDFLDefaultLogging.use_default_logging(sdfl_logging_helper):
-                _SDFLDefaultLogging.start_default_logging(sdfl_logging_helper)
+            if _SDFLFallbackLogging.use_fallback_logging(sdfl_logging_helper):
+                _SDFLFallbackLogging.start_fallback_logging(sdfl_logging_helper)
             sdfl_logging_helper.log_msg(current_point, fun_eval_at_cur_point, tentative_step)
 
         while f_wrapper.get_nfev() < max_eval and max_tentative_step >= min_step:
@@ -161,7 +161,7 @@ def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, max_eval: int, min_s
         if verbose:
                 sdfl_logging_helper.log_end_msg(result.x, result.f, result.nfev)
     finally:
-        _SDFLDefaultLogging.stop_default_logging(sdfl_logging_helper)
+        _SDFLFallbackLogging.stop_fallback_logging(sdfl_logging_helper)
 
     return result
 
