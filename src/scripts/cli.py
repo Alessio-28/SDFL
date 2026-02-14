@@ -26,7 +26,7 @@ def check_arguments(parser: ap.ArgumentParser, args: ap.Namespace) -> None:
 
             data = check_args(args, p)
             run_test.run(data, verbose=args.verbose)
-        except (ImportError, KeyError, ValueError, RuntimeError) as e:
+        except (ImportError, KeyError, ValueError, FloatingPointError) as e:
             parser.error(str(e))
 
     elif args.X or args.S or args.MAX or args.MIN or args.P or args.verbose:

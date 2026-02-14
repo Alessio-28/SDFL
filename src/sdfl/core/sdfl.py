@@ -29,8 +29,9 @@ import logging
 
 from .typing import Point, ObjectiveFunction
 from .parameters import Parameters
-from ..utils.logging import SDFLLoggingHelper, _SDFLFallbackLogging
-from ..utils.function_wrapper import _FunctionWrapper
+from ._function_wrapper import _FunctionWrapper
+from ..utils.logging.sdfl_logging_helper import SDFLLoggingHelper
+from ..utils.logging import _fallback_logging as fl
 
 sdfl_logging_helper: SDFLLoggingHelper = SDFLLoggingHelper(logging.getLogger(__name__))
 """Logger helper for `SDFL`.
@@ -60,8 +61,7 @@ def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, max_eval: int, min_s
     Implementation of `SDFL` algorithm from `https://arxiv.org/abs/2508.00495v1`
 
     If preconditions are not met, a `ValueError` is raised.
-    When the objective function gets evaluated and returns either `NaN` or `inf`,
-    a `RuntimeError` is raised.
+    `FloatingPointError` is raise according to `numpy.seterr(all='raise', under='ignore')`.
 
     `Arguments`
     --------
@@ -114,18 +114,21 @@ def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, max_eval: int, min_s
     theta: np.float64 = params.theta
 
     current_point: Point = starting_point.copy()
-    fun_eval_at_cur_point: np.float64 = F(current_point)
     prev_dir_res: _DirectionResult = _DirectionResult.FAILURE
 
+    olderr = np.seterr(all="raise", under="ignore")
     try:
-        if verbose:
-            if _SDFLFallbackLogging.use_fallback_logging(sdfl_logging_helper):
-                _SDFLFallbackLogging.start_fallback_logging(sdfl_logging_helper)
-            sdfl_logging_helper.log_msg(current_point, fun_eval_at_cur_point, tentative_step)
+        fun_eval_at_cur_point: np.float64 = F(current_point)
 
-        while f_wrapper.get_nfev() < max_eval and max_tentative_step >= min_step:
+        if verbose and fl.use_fallback_logging(sdfl_logging_helper):
+            fl.start_fallback_logging(sdfl_logging_helper)
+
+        while f_wrapper.nfev < max_eval and max_tentative_step >= min_step:
             new_point_found: bool = False
             np.maximum(tentative_step, eta * max_tentative_step, out=tentative_step)
+
+            if verbose:
+                sdfl_logging_helper.log_msg(current_point, fun_eval_at_cur_point, tentative_step)
 
             for i in range(n):
                 if prev_dir_res is not _DirectionResult.FAILURE:
@@ -139,13 +142,10 @@ def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, max_eval: int, min_s
                 if dir_res is _DirectionResult.FAILURE:
                     accepted_step[i] = 0
                 else:
-                    accepted_step[i] = _line_search(F, current_point, fun_eval_at_direction, dir_res.value, step, i, bound)
+                    current_point[i], accepted_step[i] = _line_search(F, current_point, fun_eval_at_direction, dir_res.value, step, i, bound)
                     new_point_found = True
 
                 prev_dir_res = dir_res
-
-            if verbose:
-                sdfl_logging_helper.log_msg(current_point, fun_eval_at_cur_point, tentative_step)
 
             if new_point_found:
                 np.maximum(accepted_step, tentative_step, out=tentative_step)
@@ -153,12 +153,13 @@ def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, max_eval: int, min_s
                 tentative_step *= theta
             max_tentative_step = np.max(tentative_step)
 
-        result: SDFLResult = SDFLResult(current_point, fun_eval_at_cur_point, f_wrapper.get_nfev())
+        result: SDFLResult = SDFLResult(current_point, fun_eval_at_cur_point, f_wrapper.nfev)
 
         if verbose:
                 sdfl_logging_helper.log_end_msg(result.x, result.f, result.nfev)
     finally:
-        _SDFLFallbackLogging.stop_fallback_logging(sdfl_logging_helper)
+        fl.stop_fallback_logging(sdfl_logging_helper)
+        np.seterr(**olderr)
 
     return result
 
@@ -185,25 +186,25 @@ def _choose_direction(obj_fun: ObjectiveFunction, point: Point, fun_eval_at_poin
     point[axis] = elem
     return (dir_res, fun_eval_at_direction)
 
-def _line_search(obj_fun: ObjectiveFunction, point: Point, fun_eval_at_point: np.float64, direction_sign: int, step_size: np.float64, axis: int, bound: np.float64) -> np.float64:
+def _line_search(obj_fun: ObjectiveFunction, point: Point, fun_eval_at_point: np.float64, direction_sign: int, step_size: np.float64, axis: int, bound: np.float64) -> tuple[np.float64, np.float64]:
     elem: np.float64 = point[axis]
     step: np.float64 = step_size * direction_sign
     step_2: np.float64 = step * 2
 
     power2: int = 1
+    prev_value: np.float64 = elem + step
     point[axis] = elem + step_2
 
     F_a: np.float64 = fun_eval_at_point
     F_b: np.float64 = obj_fun(point)
     while F_b - F_a <= bound * power2 * power2:
         power2 *= 2
-        point[axis] = elem + power2*step_2
-
+        prev_value, point[axis] = point[axis], elem + power2*step_2
         F_a, F_b = F_b, obj_fun(point)
 
-    # Correct point
-    point[axis] = elem + power2*step
-    return step_size * power2
+    # Restore changes
+    point[axis] = elem
+    return prev_value, step_size * power2 
 
 class _DirectionResult(Enum):
     """Result of `_choose_direction()`.
@@ -211,11 +212,11 @@ class _DirectionResult(Enum):
     `Values`
     --------
     `POSITIVE` = `1`
-        Result of `_compute_direction()` found on positive direction along the axis.
+        Result of `_choose_direction()` found on positive direction along the axis.
     `NEGATIVE` = `-1`
-        Result of `_compute_direction()` found on negative direction along the axis.
+        Result of `_choose_direction()` found on negative direction along the axis.
     `FAiLURE` = `0`
-        `_compute_direction()` terminated without finding a suitable result.
+        `_choose_direction()` terminated without finding a suitable result.
     """
 
     POSITIVE =  1
@@ -228,7 +229,7 @@ class SDFLResult:
     `Attributes`
     --------
     `x` : `Point`
-        Point computed by `SDFL`.
+        Minimum found by `SDFL`.
     `f` : `float64`
         Objective function evaluated at `x`.
     `nfev` : `int`

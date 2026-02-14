@@ -1,9 +1,9 @@
 {
-    "max_eval": 10000,
-    "min_step": 1e-08,
+    "max_eval": 5000,
+    "min_step": 1e-06,
     "theta": 0.5,
-    "gamma": 2.5,
-    "c": 1.0,
-    "eta": 1.0,
-    "epsilon": 1.0
+    "gamma": 2.0001,
+    "c": 0.001,
+    "eta": 1e-05,
+    "epsilon": 0.1
 }
