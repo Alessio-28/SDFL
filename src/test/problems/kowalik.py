@@ -9,27 +9,12 @@ import numpy as np
 import numpy.typing as npt
 
 name: str = "kowalik-osborne"
-starting_point: npt.NDArray[np.float64] = np.array([0.25, 0.39, 0.415, 0.39], dtype = np.float64)
+starting_point: npt.NDArray[np.float64] = np.array([0.25, 0.39, 0.415, 0.39], dtype=np.float64)
 n: int = starting_point.size
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
-    z: npt.NDArray[np.float64] = np.array(
-        [
-            [0.1957,      4],
-            [0.1947,      2],
-            [0.1735,      1],
-            [0.1600,    0.5],
-            [0.0844,   0.25],
-            [0.0627, 0.1670],
-            [0.0456, 0.1250],
-            [0.0342,    0.1],
-            [0.0323, 0.0833],
-            [0.0235, 0.0714],
-            [0.0246, 0.0625]
-        ],
-        dtype = np.float64
-    )
-    u: npt.NDArray[np.float64] = z[:, 1]
-    f: npt.NDArray[np.float64] = (x[0] * (u ** 2 + x[1] * u)) / (u ** 2 + x[2] * u + x[3]) - z[:, 0]
+    return np.max(np.abs((x[0] * (_U2 + x[1]*_U)) / (_U2 + x[2]*_U + x[3]) - _Z))
 
-    return np.max(np.abs(f))
+_Z = np.array([0.1957, 0.1947, 0.1735, 0.1600, 0.0844, 0.0627, 0.0456, 0.0342, 0.0323, 0.0235, 0.0246], dtype=np.float64)
+_U = np.array([     4,      2,      1,    0.5,   0.25, 0.1670, 0.1250,    0.1, 0.0833, 0.0714, 0.0625], dtype=np.float64)
+_U2 = _U**2

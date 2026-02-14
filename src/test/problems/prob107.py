@@ -17,7 +17,7 @@ import numpy.typing as npt
 
 name: str = "SO-I prob. 7"
 n: int = 10
-starting_point: npt.NDArray[np.float64] = 6 * np.ones(n, dtype = np.float64)
+starting_point: npt.NDArray[np.float64] = 6 * np.ones(n, dtype=np.float64)
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
-    return np.sum(np.log(x - 2) ** 2) + np.sum(np.log(10 - x) ** 2) - np.prod(x ** 0.2)
+    return np.sum(np.log(x - 2)**2 + np.log(10 - x)**2) - np.prod(x**0.2)

@@ -9,21 +9,41 @@ import numpy as np
 import numpy.typing as npt
 
 name: str = "filter"
-starting_point: npt.NDArray[np.float64] = np.array([0, 1, 0, -0.15, 0, -0.68, 0, -0.72, 0.37], dtype = np.float64)
+starting_point: npt.NDArray[np.float64] = np.array([0, 1, 0, -0.15, 0, -0.68, 0, -0.72, 0.37], dtype=np.float64)
 n: int = starting_point.size
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
-    t: npt.NDArray[np.float64] = np.zeros(41, dtype = np.float64)
-    t[0:6]   = 0.01 * (np.arange(1, 7) - 1)
-    t[6:20]  = 0.07 + 0.03 * (np.arange(7, 21) - 7);
-    t[20]    = 0.5
-    t[21:35] = 0.54 + 0.03 * (np.arange(22, 36) - 22);
-    t[35:41] = 0.95 + 0.01 * (np.arange(36, 42) - 36);
+    def expression_term(p: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+        return (p[0] + (1+p[1])*_COS_ETA)**2 + ((1-p[1])*_SIN_ETA)**2
 
-    z: npt.NDArray[np.float64] = np.abs(1 - 2 * t) 
-    eta: npt.NDArray[np.float64] = np.pi * t
-    A: npt.NDArray[np.float64] = ((x[0] + (1 + x[1]) * np.cos(eta)) ** 2 + ((1 - x[1]) * np.sin(eta)) ** 2) / ((x[2] + (1 + x[3]) * np.cos(eta)) ** 2 + ((1 - x[3]) * np.sin(eta)) ** 2)
-    B: npt.NDArray[np.float64] = ((x[4] + (1 + x[5]) * np.cos(eta)) ** 2 + ((1 - x[5]) * np.sin(eta)) ** 2) / ((x[6] + (1 + x[7]) * np.cos(eta)) ** 2 + ((1 - x[7]) * np.sin(eta)) ** 2)
-    f: npt.NDArray[np.float64] = x[8] * np.sqrt(A) * np.sqrt(B) - z
+    def expression(p: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+        return expression_term(p[:2]) / expression_term(p[2:])
 
-    return np.max(np.abs(f))
+    A = expression(x[:4])
+    B = expression(x[4:8])
+
+    return np.max(np.abs(x[8]*np.sqrt(A)*np.sqrt(B) - _U))
+
+def _compute_T() -> npt.NDArray[np.float64]:
+    m: int = 41
+    mid: int = m // 2
+    r1: int = 6
+    r2: int = m - r1
+    T = np.empty(m, dtype=np.float64)
+    tmp = 0.03 * np.arange(r2, dtype=np.float64)
+
+    T[:r1]        = 0.01 * np.arange(r1, dtype=np.float64)
+    T[r1:r1+r2]   = 0.07 + tmp
+    T[mid]        = 0.5
+    T[-r1-r2:-r1] = 0.54 + tmp
+    T[-r1:]       = 0.95 + T[:r1]
+
+    return T
+
+_T = _compute_T()
+
+_ETA = np.pi * _T
+_COS_ETA = np.cos(_ETA)
+_SIN_ETA = np.sin(_ETA)
+
+_U = np.abs(1 - 2*_T)

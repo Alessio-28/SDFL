@@ -15,7 +15,11 @@ import numpy.typing as npt
 
 name: str = "MISO prob. 8"
 n: int = 15
-starting_point: npt.NDArray[np.float64] = 7 * np.ones(n, dtype = np.float64) 
+starting_point: npt.NDArray[np.float64] = 7 * np.ones(n, dtype=np.float64) 
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:  
-    return (x[5] - 1) ** 2 + np.sum(np.arange(1, 14) * (2 * x[1:14] ** 2 - x[0:13] ** 2))
+    y = x[:_m]**2
+    return (x[5] - 1)**2 + np.dot(_Z, (2*y[1:] - y[:-1]))
+
+_m: int = n - 1
+_Z = np.arange(1, _m)

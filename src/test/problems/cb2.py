@@ -10,10 +10,14 @@ import numpy.typing as npt
 
 name: str = "cb2"
 n: int = 2
-starting_point: npt.NDArray[np.float64] = np.array([2, 2], dtype = np.float64)
+starting_point: npt.NDArray[np.float64] = 2 * np.ones(n, dtype=np.float64)
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
-    fx1: np.float64 = x[0] ** 2 + x[1] ** 4
-    fx2: np.float64 = (2 - x[0]) ** 2 + (2 - x[1]) ** 2
-    fx3: np.float64 = 2 * np.exp(x[1] - x[0])
-    return np.max([fx1, fx2, fx3])
+    f = np.empty(_m, dtype=np.float64)
+    f[0] = x[0]**2 + x[1]**4
+    f[1] = (2 - x[0])**2 + (2 - x[1])**2
+    f[2] = 2 * np.exp(x[1] - x[0])
+
+    return np.max(f)
+
+_m: int = 3

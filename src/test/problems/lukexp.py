@@ -9,11 +9,14 @@ import numpy as np
 import numpy.typing as npt
 
 name: str = "exp"
-starting_point: npt.NDArray[np.float64] = np.array([0.5, 0, 0, 0, 0], dtype = np.float64)
+starting_point: npt.NDArray[np.float64] = np.array([0.5, 0, 0, 0, 0], dtype=np.float64)
 n: int = starting_point.size
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
-    t = -1 + (np.arange(1,22)-1)/10     
-    f = (x[0] + x[1]*t)/(1 + x[2]*t + x[3]*t**2 + x[4]*t**3) - np.exp(t)
+    return np.max((x[0] + x[1]*_T) / (1 + x[2]*_T + x[3]*_T2 + x[4]*_T3) - _expT)
 
-    return np.max(f)
+_m: int = 21
+_T = -1 + np.arange(_m, dtype=np.float64)/10
+_T2 = _T**2
+_T3 = _T**3
+_expT = np.exp(_T)

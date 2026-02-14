@@ -10,15 +10,34 @@ import numpy.typing as npt
 
 name: str = "polak 6"
 n: int = 4
-starting_point: npt.NDArray[np.float64] = np.zeros(n, dtype = np.float64)
+starting_point: npt.NDArray[np.float64] = np.zeros(n, dtype=np.float64)
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
-    f = np.zeros(n, dtype = np.float64)
-    a    = x[0] - (x[3]+1) ** 4;
-    f[0] = a ** 2 + (x[1]-a ** 4) ** 2 + 2 * x[2] ** 2 + x[3] ** 2 - 5 * a - 5 * (x[1]-a ** 4) - 21 * x[2] + 7 * x[3]
-    f[1] = f[0] + 10 * (a ** 2 + (x[1]-a ** 4) ** 2 + x[2] ** 2 + x[3] ** 2 + a - (x[1]-a ** 4) + x[2] - x[3] - 8)
-    f[2] = f[0] + 10 * (a ** 2 + 2 * (x[1]-a ** 4) ** 2 + x[2] ** 2 + 2 * x[3] ** 2 - a - x[3] - 10)
-    f[3] = f[0] + 10 * (a ** 2 + (x[1]-a ** 4) ** 2 + x[2] ** 2 + 2 * a - (x[1]-a ** 4) -x[3] - 5)
+    y0 = x[0] - (x[3] + 1)**4;
+    y1 = x[1] - y0**4
+    y = np.array([y0, y1, x[2], x[3]], dtype=np.float64)
+
+    f = _A @ y**2 + _B @ y + _C
+    f[1:] = f[0] + 10*f[1:]
 
     return np.max(f)
 
+_A = np.array(
+    [
+        [1, 1, 2, 1],
+        [1, 1, 1, 1],
+        [1, 2, 1, 2],
+        [1, 1, 1, 0]
+    ],
+    dtype=np.float64
+)
+_B = np.array(
+    [
+        [-5, -5, -21,  7],
+        [ 1, -1,   1, -1],
+        [-1,  0,   0, -1],
+        [ 2, -1,   0, -1]
+    ],
+    dtype=np.float64
+)
+_C = np.array([0, -8, -10, -5], dtype=np.float64)

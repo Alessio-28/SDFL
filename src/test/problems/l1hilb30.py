@@ -10,13 +10,13 @@ import numpy.typing as npt
 
 n: int = 30
 name: str = f"l1hilb({n})"
-starting_point: npt.NDArray[np.float64] = np.ones(n, dtype = np.float64)
+starting_point: npt.NDArray[np.float64] = np.ones(n, dtype=np.float64)
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
-    i: npt.NDArray[np.float64] = np.arange(1, n + 1, dtype = np.float64)
-    j: npt.NDArray[np.float64] = np.arange(1, n + 1, dtype = np.float64)
-    I = np.tile(i, (n, 1))
-    J = np.tile(j.reshape(-1, 1), (1, n))
-    X = np.tile(x.reshape(-1, 1), (1, n))
+    return np.abs(np.sum(x[:, np.newaxis] / _J))
 
-    return np.sum(np.abs(np.sum(X / (I + J - 1))))
+def _compute_J() -> npt.NDArray[np.float64]:
+    _I = 1 + np.arange(n, dtype=np.float64)
+    return _I + _I[:, np.newaxis] - 1
+
+_J = _compute_J()

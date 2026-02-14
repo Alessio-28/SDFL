@@ -9,11 +9,9 @@ import numpy as np
 import numpy.typing as npt
 
 name: str = "maxl"
-starting_point: npt.NDArray[np.float64] = np.concatenate([np.array(np.arange(1, 11, dtype = np.float64)), np.array(np.arange(-11, -21, -1, dtype = np.float64))])
-n: int = starting_point.size
+n: int = 20
+starting_point: npt.NDArray[np.float64] = 1 + np.arange(n, dtype=np.float64)
+starting_point[n//2:] *= -1
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
-    f: npt.NDArray[np.float64] = np.zeros(n * 2, dtype = np.float64)
-    f[:n]   =  x[:]
-    f[n:n*2] = -x[:]
-    return np.max(f)
+    return np.max(np.abs(x))

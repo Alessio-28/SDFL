@@ -10,12 +10,12 @@ import numpy.typing as npt
 
 name: str = "oet5"
 n: int = 4
-starting_point: npt.NDArray[np.float64] = np.ones(n, dtype = np.float64)
+starting_point: npt.NDArray[np.float64] = np.ones(n, dtype=np.float64)
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
-    m: int = 21
-    I = np.arange(m, dtype = np.float64).reshape(m, -1)
-    t = 0.25 + (0.75 / 20) * I
-    f = x[3] - (x[0] * t ** 2 + x[1] * t + x[2]) ** 2 - np.sqrt(t)
+    return np.max(np.abs(x[3] - (x[0] * _T2 + x[1]*_T + x[2])**2 - _sqrtT))
 
-    return np.max(np.abs(f))
+_m: int = 21
+_T = 0.25 + (3/80) * np.arange(_m, dtype=np.float64)
+_T2 = _T**2
+_sqrtT = np.sqrt(_T)
