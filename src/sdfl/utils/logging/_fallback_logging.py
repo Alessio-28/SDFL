@@ -34,7 +34,9 @@ def start_fallback_logging(helper: SDFLLoggingHelper) -> None:
     _running = True
 
     _prev_info = _prepare_helper(helper, _default_info)
-    _q_helper = QueueHandlerHelper(helper.logger, logging.StreamHandler(sys.stdout))
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(helper.logger.getEffectiveLevel())
+    _q_helper = QueueHandlerHelper(helper.logger, handler)
     _q_helper.start()
 
 def stop_fallback_logging(helper: SDFLLoggingHelper) -> None:

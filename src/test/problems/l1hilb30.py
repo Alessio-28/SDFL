@@ -13,10 +13,10 @@ name: str = f"l1hilb({n})"
 starting_point: npt.NDArray[np.float64] = np.ones(n, dtype=np.float64)
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
-    return np.abs(np.sum(x[:, np.newaxis] / _J))
+    return np.abs(np.sum(x[:, np.newaxis] / _I))
 
-def _compute_J() -> npt.NDArray[np.float64]:
-    _I = 1 + np.arange(n, dtype=np.float64)
-    return _I + _I[:, np.newaxis] - 1
+def _compute_I() -> npt.NDArray[np.float64]:
+    i = 1 + np.arange(n, dtype=np.float64)
+    return i + i[:, np.newaxis] - 1
 
-_J = _compute_J()
+_I = _compute_I()

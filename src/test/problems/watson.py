@@ -14,9 +14,9 @@ starting_point : npt.NDArray[np.float64] = np.zeros(n, dtype=np.float64)
 
 def feval(x : npt.NDArray[np.float64]) -> np.float64:
     f = np.empty(_m, dtype=np.float64)
-    X = x[:, np.newaxis]
+    xT = x[:, np.newaxis]
 
-    f[:-2] = np.sum(_J * X * _A, axis = 0) - np.sum(X * _B, axis = 0) ** 2
+    f[:-2] = np.sum(_J * xT * _A, axis = 0) - np.sum(xT * _B, axis = 0) ** 2
     f[-2]  = x[0]
     f[-1]  = x[1] - x[0]**2 - 1
 

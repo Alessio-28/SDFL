@@ -13,12 +13,14 @@ starting_point: npt.NDArray[np.float64] = np.array([0.8, 1.5, 1.2, 3, 0.8, 6], d
 n: int = starting_point.size
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
-    Tx = _THETA * (x[2*_loop_range - 1][:, np.newaxis])
+    tmp = x[2*_loop_range - 1][:, np.newaxis]
+
+    Tx = _THETA * tmp
     a = np.cos(Tx)
     b = np.sin(Tx)
     c = b.copy()
-    b = b / (x[2*_loop_range][:, np.newaxis])
-    c = c * (x[2*_loop_range][:, np.newaxis])
+    b /= tmp
+    c *= tmp
 
     v = np.zeros((_l, _m), dtype=np.complex128)
     w = np.zeros((_l, _m), dtype=np.complex128)

@@ -14,13 +14,13 @@ starting_point: npt.NDArray[np.float64] = 1e-4 * np.ones(n, dtype=np.float64)
 starting_point[6] = 60
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
-    x_10 = x[:_m]
-    x_5  = x[_m:]
+    y = x[:_m]
+    z  = x[_m:]
 
     Q = np.sum(np.minimum(x, 0))
-    P = (_A @ x_10) - 2*x_5*_C - 3*_D * x_5**2 - _E
+    P = (_A @ y) - 2*z*_C - 3*_D * z**2 - _E
 
-    return 2*np.abs(np.dot(_D, x_5**3)) + np.sum(x_5 * x_5[:, np.newaxis] * _C) - np.dot(_B, x_10) + 100*(np.sum(np.maximum(P, 0)) - Q)
+    return 2*np.abs(np.dot(_D, z**3)) + np.sum(z * z[:, np.newaxis] * _C) - np.dot(_B, y) + 100*(np.sum(np.maximum(P, 0)) - Q)
 
 _A = np.array(
     [

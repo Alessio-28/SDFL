@@ -29,16 +29,16 @@ def _compute_T() -> npt.NDArray[np.float64]:
     mid: int = m // 2
     r1: int = 6
     r2: int = m - r1
-    T = np.empty(m, dtype=np.float64)
+    t = np.zeros(m, dtype=np.float64)
     tmp = 0.03 * np.arange(r2, dtype=np.float64)
 
-    T[:r1]        = 0.01 * np.arange(r1, dtype=np.float64)
-    T[r1:r1+r2]   = 0.07 + tmp
-    T[mid]        = 0.5
-    T[-r1-r2:-r1] = 0.54 + tmp
-    T[-r1:]       = 0.95 + T[:r1]
+    t[:r1]        = 0.01 * np.arange(r1, dtype=np.float64)
+    t[r1:r1+r2]   = 0.07 + tmp
+    t[mid]        = 0.5
+    t[-r1-r2:-r1] = 0.54 + tmp
+    t[-r1:]       = 0.95 + t[:r1]
 
-    return T
+    return t
 
 _T = _compute_T()
 

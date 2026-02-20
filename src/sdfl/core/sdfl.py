@@ -29,7 +29,6 @@ import logging
 
 from .typing import Point, ObjectiveFunction
 from .parameters import Parameters
-from ._function_wrapper import _FunctionWrapper
 from ..utils.logging.sdfl_logging_helper import SDFLLoggingHelper
 from ..utils.logging import _fallback_logging as fl
 
@@ -206,23 +205,6 @@ def _line_search(obj_fun: ObjectiveFunction, point: Point, fun_eval_at_point: np
     point[axis] = elem
     return prev_value, step_size * power2 
 
-class _DirectionResult(Enum):
-    """Result of `_choose_direction()`.
-
-    `Values`
-    --------
-    `POSITIVE` = `1`
-        Result of `_choose_direction()` found on positive direction along the axis.
-    `NEGATIVE` = `-1`
-        Result of `_choose_direction()` found on negative direction along the axis.
-    `FAiLURE` = `0`
-        `_choose_direction()` terminated without finding a suitable result.
-    """
-
-    POSITIVE =  1
-    NEGATIVE = -1
-    FAILURE  =  0
-
 class SDFLResult:
     """Contains the result of `SDFL`.
 
@@ -276,3 +258,73 @@ def _validate_sdfl_args(starting_point: Point, max_eval: int, min_step: np.float
         raise ValueError("max_eval must be a positive integer.")
     if min_step <= 0:
         raise ValueError("min_step must be a positive real number.")
+
+class _FunctionWrapper:
+    """Objective function wrapper, counts function evaluations.
+
+    `Attributes`
+    --------
+    `_obj_fun` : `ObjectiveFunction`
+        Objecive function.
+    `_nfev` : `int`
+        Counter of objective function evaluations.
+        Gets initialised to `0` by the constructor.
+
+    `Methods`
+    --------
+    `eval` : `(Point) -> float64`
+        Evaluates the objective function at the given point.
+        Increases the evaluation counter by `1`.
+    """
+
+    obj_fun: ObjectiveFunction
+    nfev: int
+
+    def __init__(self: _FunctionWrapper, obj_fun: ObjectiveFunction) -> None:
+        """Initialises the wrapper and sets the counter to `0`.
+
+        Arguments
+        --------
+        `obj_fun` : `ObjectiveFunction`
+            Function to assign to the wrapper.
+        """
+
+        self.obj_fun = obj_fun
+        self.nfev = 0
+
+    def eval(self: _FunctionWrapper, x: Point) -> np.float64:
+        """Evaluates the objective function.
+
+        Evaluates the objective function at `x`
+        and increases the evaluations counter by `1`.
+
+        `Arguments`
+        --------
+        `x` : `Point`
+            The point at which the objective function gets evaluated.
+
+        `Return`
+        --------
+        `result` : `float64`
+            The result of the evaluation.
+        """
+
+        self.nfev += 1
+        return self.obj_fun(x)
+
+class _DirectionResult(Enum):
+    """Result of `_choose_direction()`.
+
+    `Values`
+    --------
+    `POSITIVE` = `1`
+        Result of `_choose_direction()` found on positive direction along the axis.
+    `NEGATIVE` = `-1`
+        Result of `_choose_direction()` found on negative direction along the axis.
+    `FAiLURE` = `0`
+        `_choose_direction()` terminated without finding a suitable result.
+    """
+
+    POSITIVE =  1
+    NEGATIVE = -1
+    FAILURE  =  0

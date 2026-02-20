@@ -18,7 +18,6 @@ class QueueHandlerHelper:
         self.q_handler = QueueHandler(self.q)
         self.q_listener = QueueListener(self.q, self.handler)
 
-        self.handler.setLevel(logger.getEffectiveLevel())
         self.q_handler.setLevel(logger.getEffectiveLevel())
         self.logger.addHandler(self.q_handler)
 
