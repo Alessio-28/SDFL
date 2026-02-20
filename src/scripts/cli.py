@@ -62,6 +62,12 @@ def check_args(args: ap.Namespace, p: pm.Problem) -> sdfl_data.SDFLData:
 
     return data_json.dict_to_SDFLData(p, data, starting_step)
 
+##################################
+#                                #
+# Set up the command line parser #
+#                                #
+##################################
+
 def cli() -> None:
     usage: str = "%(prog)s [-h] [-l] [-j] [(-p PROBLEM | --from-file) [-x X [X ...]] [-s S [S ...]] [--max-eval MAX] [--min-step MIN] [--params P P P P P] [-v]]"
     parser: ap.ArgumentParser = ap.ArgumentParser(usage=usage, formatter_class=ap.RawTextHelpFormatter)

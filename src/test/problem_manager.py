@@ -28,8 +28,8 @@ class Problem:
     feval: ObjectiveFunction
 
     def __init__(self: Problem, name: str, starting_point: Point, n: int, feval: ObjectiveFunction) -> None:
-        if not isinstance(starting_point, np.ndarray): # pyright: ignore[reportUnnecessaryIsInstance]
-            raise ValueError("Starting_point must be a ndarray.") # pyright: ignore[reportUnreachable]
+        if not isinstance(starting_point, np.ndarray):
+            raise ValueError("Starting_point must be a ndarray.")
         if len(starting_point.shape) != 1:
             raise ValueError("starting_point must be a 1-dimensional array.")
         if starting_point.size != n:

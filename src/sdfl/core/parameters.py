@@ -117,9 +117,9 @@ class Parameters:
             Returns `true` if all preconditions are met,
             `false` otherwise.
         """
-        return (theta <= Parameters._THETA_LOWER_BOUND
-                or theta >= Parameters._THETA_UPPER_BOUND
-                or gamma <= Parameters._GAMMA_LOWER_BOUND
-                or c <= Parameters._C_LOWER_BOUND
-                or eta <= Parameters._ETA_LOWER_BOUND
-                or epsilon <= Parameters._EPSILON_LOWER_BOUND) # pyright: ignore[reportReturnType]
+        return bool(theta <= Parameters._THETA_LOWER_BOUND
+                    or theta >= Parameters._THETA_UPPER_BOUND
+                    or gamma <= Parameters._GAMMA_LOWER_BOUND
+                    or c <= Parameters._C_LOWER_BOUND
+                    or eta <= Parameters._ETA_LOWER_BOUND
+                    or epsilon <= Parameters._EPSILON_LOWER_BOUND)

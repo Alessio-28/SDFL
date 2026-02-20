@@ -25,24 +25,24 @@ import numpy as np
 import numpy.typing as npt
 from enum import Enum
 from typing import override
-import logging
+from logging import getLogger
 
 from .typing import Point, ObjectiveFunction
 from .parameters import Parameters
-from ..utils.logging.sdfl_logging_helper import SDFLLoggingHelper
 from ..utils.logging import _fallback_logging as fl
+from ..utils.logging.sdfl_logging_helper import SDFLLoggingHelper
 
-sdfl_logging_helper: SDFLLoggingHelper = SDFLLoggingHelper(logging.getLogger(__name__))
+sdfl_logging_helper: SDFLLoggingHelper = SDFLLoggingHelper(getLogger(__name__))
 """Logger helper for `SDFL`.
 
 Initialised at import.
-`sdfl_logging_helper` has this module's logger as attribute.
+`sdfl_logging_helper` has this module's logger as an attribute.
 Its parent has `NullHandler` attached.
 --------
 Logging level: `INFO`.
 If `SDFL` argument `verbose == True` and no other handler is attached to the logger,
 `StreamHandler` will be attached using `QueueHandler` and `QueueListener`
-and it is detached after the algorithm terminates.
+and will be detached after the algorithm terminates.
 --------
 Intermediate logging messages contain (in this order):
 the `current minimum` point, the `objective function` evaluated
@@ -52,6 +52,7 @@ the `minimum` point, the `objective function` evaluated
 at the minimum point, and the number of evaluations.
 --------
 To change the message format refer to class `SDFLLoggingHelper`.
+At import attributes `msg = ''` and `end_msg = ''`.
 """
 
 def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, max_eval: int, min_step: np.float64, params: Parameters, starting_step: npt.NDArray[np.float64] | None = None, verbose: bool = False) -> SDFLResult:
@@ -229,24 +230,21 @@ class SDFLResult:
 
     @override
     def __str__(self: SDFLResult) -> str:
-        str_repr : str = (
-            f"x = {self.x}\n"
-            f"f(x) = {self.f}\n"
-            f"nfev = {self.nfev}\n"
-        )
-        return str_repr
+        return (f"x = {self.x}\n"
+                f"f(x) = {self.f}\n"
+                f"nfev = {self.nfev}\n")
 
 def _validate_sdfl_args(starting_point: Point, max_eval: int, min_step: np.float64, starting_step: npt.NDArray[np.float64] | None = None) -> None:
     """Precondition checks for `SDFL`."""
 
-    if not isinstance(starting_point, np.ndarray): # pyright: ignore[reportUnnecessaryIsInstance]
-        raise ValueError("starting_point must be a ndarray.") # pyright: ignore[reportUnreachable]
+    if not isinstance(starting_point, np.ndarray):
+        raise ValueError("starting_point must be a ndarray.")
     if len(starting_point.shape) != 1:
         raise ValueError("starting_point must be a 1-dimensional array.")
 
     if starting_step is not None:
-        if not isinstance(starting_step, np.ndarray): # pyright: ignore[reportUnnecessaryIsInstance]
-            raise ValueError("starting_step must be a ndarray.") # pyright: ignore[reportUnreachable]
+        if not isinstance(starting_step, np.ndarray):
+            raise ValueError("starting_step must be a ndarray.")
         if len(starting_step.shape) != 1:
             raise ValueError("starting_step must be a 1-dimensional array.")
         if starting_point.size != starting_step.size:

@@ -30,7 +30,13 @@ class SDFLLoggingHelper:
         self.msg = msg
         self.end_msg = end_msg
 
-    def log(self: SDFLLoggingHelper, msg: object, *args: object, exc_info: logging._ExcInfoType = None, stack_info: bool = False, stacklevel: int = 1, extra: Mapping[str, object] | None = None) -> None:
+    def log(self: SDFLLoggingHelper,
+            msg: object,
+            *args: object,
+            exc_info: logging._ExcInfoType = None,
+            stack_info: bool = False,
+            stacklevel: int = 1,
+            extra: Mapping[str, object] | None = None) -> None:
         self.logger.log(
             self.logger.getEffectiveLevel(),
             msg,
@@ -41,7 +47,12 @@ class SDFLLoggingHelper:
             extra=extra
         )
 
-    def log_msg(self: SDFLLoggingHelper, *args: object, exc_info: logging._ExcInfoType = None, stack_info: bool = False, stacklevel: int = 1, extra: Mapping[str, object] | None = None) -> None:
+    def log_msg(self: SDFLLoggingHelper,
+                *args: object,
+                exc_info: logging._ExcInfoType = None,
+                stack_info: bool = False,
+                stacklevel: int = 1,
+                extra: Mapping[str, object] | None = None) -> None:
         self.log(
             self.msg,
             *args,
@@ -51,7 +62,12 @@ class SDFLLoggingHelper:
             extra=extra
         )
 
-    def log_end_msg(self: SDFLLoggingHelper, *args: object, exc_info: logging._ExcInfoType = None, stack_info: bool = False, stacklevel: int = 1, extra: Mapping[str, object] | None = None) -> None:
+    def log_end_msg(self: SDFLLoggingHelper,
+                    *args: object,
+                    exc_info: logging._ExcInfoType = None,
+                    stack_info: bool = False,
+                    stacklevel: int = 1,
+                    extra: Mapping[str, object] | None = None) -> None:
         self.log(
             self.end_msg,
             *args,
