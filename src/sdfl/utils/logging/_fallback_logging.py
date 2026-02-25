@@ -17,7 +17,7 @@ class _SDFLLogInfo:
 _default_info: _SDFLLogInfo = _SDFLLogInfo(
     level=logging.INFO,
     msg="x = %s\nf(x) = %g\nSteps = %s\n",
-    end_msg="Result:\nx = %s\nf(x) = %g\nnfev = %d\n"
+    end_msg="Result:\n\tx = %s\n\tf(x) = %g\n\tnfev = %d\n"
 )
 
 _prev_info: _SDFLLogInfo | None = None

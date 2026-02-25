@@ -62,11 +62,11 @@ def check_args(args: ap.Namespace, p: pm.Problem) -> sdfl_data.SDFLData:
 
     return data_json.dict_to_SDFLData(p, data, starting_step)
 
-##################################
-#                                #
-# Set up the command line parser #
-#                                #
-##################################
+#############################
+#                           #
+# Command line parser setup #
+#                           #
+#############################
 
 def cli() -> None:
     usage: str = "%(prog)s [-h] [-l] [-j] [(-p PROBLEM | --from-file) [-x X [X ...]] [-s S [S ...]] [--max-eval MAX] [--min-step MIN] [--params P P P P P] [-v]]"
@@ -91,11 +91,11 @@ def set_parser_run_group(parser: ap.ArgumentParser) -> None:
     )
     params_help: str = (
         "Parameters must be written in the following order: theta gamma c eta epsilon.\n"
-            f"{Parameters._THETA_LOWER_BOUND} < theta < {Parameters._THETA_UPPER_BOUND}, "
-            f"gamma > {Parameters._GAMMA_LOWER_BOUND}, "
-            f"c > {Parameters._C_LOWER_BOUND}, "
-            f"eta > {Parameters._ETA_LOWER_BOUND}, "
-            f"epsilon > {Parameters._EPSILON_LOWER_BOUND}"
+        f"{Parameters._THETA_LOWER_BOUND} < theta < {Parameters._THETA_UPPER_BOUND}, "
+        f"gamma > {Parameters._GAMMA_LOWER_BOUND}, "
+        f"c > {Parameters._C_LOWER_BOUND}, "
+        f"eta > {Parameters._ETA_LOWER_BOUND}, "
+        f"epsilon > {Parameters._EPSILON_LOWER_BOUND}"
     )
 
     run_group = parser.add_argument_group(title="algorithm options", description=description)

@@ -40,6 +40,22 @@ def create_default_data_json() -> dict[str, Any]:
     export_data(data)
     return data
 
+def dict_to_SDFLData(p: problem_manager.Problem, data_dict: dict[str, Any], starting_step: npt.NDArray[np.float64] | None = None) -> sdfl_data.SDFLData:
+    data = sdfl_data.SDFLData(
+        problem=p,
+        max_eval=data_dict[constants.KEY_MAX_EVAL],
+        min_step=data_dict[constants.KEY_MIN_STEP],
+        params=parameters.Parameters(
+            theta=data_dict[constants.KEY_THETA],
+            gamma=data_dict[constants.KEY_GAMMA],
+            c=data_dict[constants.KEY_C],
+            eta=data_dict[constants.KEY_ETA],
+            epsilon=data_dict[constants.KEY_EPSILON],
+        ),
+        starting_step=starting_step
+    )
+    return data
+
 def _validate_data_json(data_dict: dict[str, Any]) -> bool:
     INT = (np.integer,)
     INT_OR_FLOAT = (np.integer, np.floating)
@@ -63,19 +79,3 @@ def _validate_data_json(data_dict: dict[str, Any]) -> bool:
             return False
 
     return True
-
-def dict_to_SDFLData(p: problem_manager.Problem, data_dict: dict[str, Any], starting_step: npt.NDArray[np.float64] | None = None) -> sdfl_data.SDFLData:
-    data = sdfl_data.SDFLData(
-        problem=p,
-        max_eval=data_dict[constants.KEY_MAX_EVAL],
-        min_step=data_dict[constants.KEY_MIN_STEP],
-        params=parameters.Parameters(
-            theta=data_dict[constants.KEY_THETA],
-            gamma=data_dict[constants.KEY_GAMMA],
-            c=data_dict[constants.KEY_C],
-            eta=data_dict[constants.KEY_ETA],
-            epsilon=data_dict[constants.KEY_EPSILON],
-        ),
-        starting_step=starting_step
-    )
-    return data
