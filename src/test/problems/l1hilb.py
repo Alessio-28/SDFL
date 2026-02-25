@@ -13,10 +13,12 @@ n: int = 50
 starting_point: npt.NDArray[np.float64] = np.ones(n, dtype=np.float64)
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
-    return np.abs(np.sum(x[:, np.newaxis] / _I))
+    return np.abs(x @ _W) # pyright: ignore[reportReturnType]
 
-def _compute_I() -> npt.NDArray[np.float64]:
-    i = 1 + np.arange(n, dtype=np.float64)
-    return i + i[:, np.newaxis] - 1
+def _compute_weights(n: int) -> npt.NDArray[np.float64]:
+    harmonics = 1 / np.arange(1, 2*n, dtype=np.float64)
+    return np.convolve(harmonics, np.ones(n), mode="valid")
 
-_I = _compute_I()
+_W = _compute_weights(n)
+
+del _compute_weights

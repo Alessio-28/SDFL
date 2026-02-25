@@ -14,7 +14,7 @@ starting_point: npt.NDArray[np.float64] = np.zeros(n, dtype=np.float64)
 
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
-    return np.dot(_D, np.max(x - _A, axis=0)) - np.dot(_S, x)
+    return _D @ np.max(x - _A, axis=1) - _S @ x
 
 _S = np.array([22, 53, 64, 15, 66, 37, 16, 23, 67, 18, 52, 69, 17, 29, 50, 13, 95, 34, 59, 36, 22, 94, 28, 34, 36, 38, 55, 77, 45, 34, 32, 58, 30, 88, 74, 59, 93, 54, 89, 30, 79, 46, 35, 41, 99, 52, 76, 93], dtype=np.float64)
 _D = np.array([61, 67, 24, 84, 13, 86, 89, 46, 48, 50, 74, 75, 88, 40, 29, 45, 32, 21, 61, 21, 51, 14, 89, 79, 38, 20, 97, 19, 10, 73, 59, 92, 52, 66, 89, 65, 63, 47,  7, 61, 87, 19, 36, 43,  9, 12,  8, 67], dtype=np.float64)

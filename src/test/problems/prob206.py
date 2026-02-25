@@ -18,4 +18,7 @@ n: int = 15
 starting_point: npt.NDArray[np.float64] = np.ones(n, dtype=np.float64) 
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
-    return -20*np.exp(-0.2 * np.sqrt(np.dot(x, x) / 15)) - np.exp(np.sum(np.cos(2*np.pi*x)) / 15)
+    f1 = np.exp(-0.2 * np.sqrt((x @ x) / 15))
+    f2 = np.exp(np.sum(np.cos(2*np.pi*x)) / 15)
+
+    return -20 * f1 - f2

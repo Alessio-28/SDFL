@@ -13,7 +13,11 @@ starting_point: npt.NDArray[np.float64] = np.array([0, 0, 0, 0, 1], dtype=np.flo
 n: int = starting_point.size
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
-    return np.dot(x**3, _D) + np.sum(x**2 * _C) + np.dot(x, _E) + 50*np.maximum(0, np.max(_B - (x @ _A)))
+    f1 = x @ _E
+    f2 = x**3 @ _D
+    f3 = x @ _C @ x
+    f4 = np.maximum(0, np.max(_B - (x @ _A)))
+    return f1 + f2 + f3 + 50 * f4
 
 _A = np.array(
     [

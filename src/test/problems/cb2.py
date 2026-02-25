@@ -13,11 +13,9 @@ n: int = 2
 starting_point: npt.NDArray[np.float64] = 2 * np.ones(n, dtype=np.float64)
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
-    f = np.empty(_m, dtype=np.float64)
+    f = np.empty(3, dtype=np.float64)
     f[0] = x[0]**2 + x[1]**4
     f[1] = (2 - x[0])**2 + (2 - x[1])**2
     f[2] = 2 * np.exp(x[1] - x[0])
 
     return np.max(f)
-
-_m: int = 3

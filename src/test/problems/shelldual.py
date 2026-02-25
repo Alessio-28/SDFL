@@ -15,12 +15,18 @@ starting_point[6] = 60
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
     y = x[:_m]
-    z  = x[_m:]
+    z = x[_m:]
+    z2 = z*z
+    z3 = z2*z
 
-    Q = np.sum(np.minimum(x, 0))
-    P = (_A @ y) - 2*z*_C - 3*_D * z**2 - _E
+    P = (_A @ y) - 2*(_C @ z) - 3*_D*z2 - _E
+    Q = np.sum(np.clip(P, 0, None)) - np.sum(np.clip(x, None, 0))
 
-    return 2*np.abs(np.dot(_D, z**3)) + np.sum(z * z[:, np.newaxis] * _C) - np.dot(_B, y) + 100*(np.sum(np.maximum(P, 0)) - Q)
+    U = np.abs(_D @ z3)
+
+    V = z @ _C @ z
+    W = _B @ y
+    return 2*U + V - W + 100*Q # pyright: ignore[reportReturnType]
 
 _A = np.array(
     [
@@ -44,15 +50,6 @@ _C = np.array(
     dtype=np.float64
 )
 _D = np.array([4, 8, 10, 6, 2], dtype=np.float64)
-_E = np.array(
-    [
-        [-15],
-        [-27],
-        [-36],
-        [-18],
-        [-12]
-    ],
-    dtype=np.float64
-)
+_E = np.array([-15, -27, -36, -18, -12], dtype=np.float64)
 
 _m = _A.shape[1]

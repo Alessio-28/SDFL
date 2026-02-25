@@ -13,7 +13,9 @@ starting_point: npt.NDArray[np.float64] = np.array([0, 0, 0, 0, 1], dtype=np.flo
 n: int = starting_point.size
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
-    return np.max(_B * np.sum((x - _A)**2, axis=1))
+    f = x - _A
+    np.square(f, out=f)
+    return np.max(_B * np.sum(f, axis=1))
 
 _A = np.array(
     [

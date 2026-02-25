@@ -19,6 +19,6 @@ n: int = 8
 starting_point: npt.NDArray[np.float64] = np.ones(n, dtype=np.float64) 
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
-    return np.dot(x**2, _Y)
+    return (x*x) @ _Y # pyright: ignore[reportReturnType]
 
 _Y = np.array([3.1, 7.6, 6.9, 0.004, 19, 3, 1, 4], dtype=np.float64)

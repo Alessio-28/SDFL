@@ -37,9 +37,23 @@ def run(data: SDFLData, verbose: bool = False) -> None:
         q.start()
         logger.info(f"Problem: %s", data.problem.name)
 
-    result = SDFL(data.problem.feval, data.problem.starting_point, data.max_eval, data.min_step, data.params, data.starting_step, verbose)
+    result = SDFL(
+        data.problem.feval,
+        data.problem.starting_point,
+        data.max_eval,
+        data.min_step,
+        data.params,
+        data.starting_step,
+        verbose
+    )
 
     if verbose:
         q.stop_and_close() # pyright: ignore[reportOptionalMemberAccess]
     else:
-        print(f"Problem: {data.problem.name}\nResult:\n{result}")
+        print((
+            f"Problem: {data.problem.name}\n"
+            f"Result:\n"
+			f"\tx = {result.x}\n"
+			f"\tf(x) = {result.f}\n"
+			f"\tnfev = {result.nfev}"
+        ))

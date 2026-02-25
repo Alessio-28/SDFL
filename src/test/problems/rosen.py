@@ -14,10 +14,9 @@ starting_point: npt.NDArray[np.float64] = np.zeros(n, dtype=np.float64)
 
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
-    f = _A @ x**2 + _B @ x + _C
-    f[1:] = 10*f[1:] + f[0]
+    f = (_A @ (x*x)) + (_B @ x) + _C
     
-    return np.max(f)
+    return f[0] + 10*np.maximum(0, np.max(f[1:]))
 
 _A = np.array(
     [

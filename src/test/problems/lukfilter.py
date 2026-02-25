@@ -13,37 +13,43 @@ starting_point: npt.NDArray[np.float64] = np.array([0, 1, 0, -0.15, 0, -0.68, 0,
 n: int = starting_point.size
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
-    def expression_term(p: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
-        return (p[0] + (1+p[1])*_COS_ETA)**2 + ((1-p[1])*_SIN_ETA)**2
+    y = x[:-1]
+    t_cos = (1+y[_odd, np.newaxis]) * _COS_ETA + y[_even, np.newaxis]
+    t_sin = (1-y[_odd, np.newaxis]) * _SIN_ETA
 
-    def expression(p: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
-        return expression_term(p[:2]) / expression_term(p[2:])
+    np.square(t_cos, out=t_cos)
+    np.square(t_sin, out=t_sin)
 
-    A = expression(x[:4])
-    B = expression(x[4:8])
+    t = t_cos + t_sin
 
-    return np.max(np.abs(x[8]*np.sqrt(A)*np.sqrt(B) - _U))
+    A = (t[0] * t[2]) / (t[1] * t[3])
 
-def _compute_T() -> npt.NDArray[np.float64]:
-    m: int = 41
-    mid: int = m // 2
-    r1: int = 6
-    r2: int = m - r1
-    t = np.zeros(m, dtype=np.float64)
-    tmp = 0.03 * np.arange(r2, dtype=np.float64)
+    np.sqrt(A, out=A)
+    return np.max(np.abs(x[-1]*A - _U))
 
-    t[:r1]        = 0.01 * np.arange(r1, dtype=np.float64)
-    t[r1:r1+r2]   = 0.07 + tmp
-    t[mid]        = 0.5
-    t[-r1-r2:-r1] = 0.54 + tmp
-    t[-r1:]       = 0.95 + t[:r1]
+def _compute_T(size: int, first_slice: int) -> npt.NDArray[np.float64]:
+    a: int = first_slice
+    b: int = size // 2 - a
 
-    return t
+    s1 =        0.01 * np.arange(a, dtype=np.float64)
+    s2 = 0.07 + 0.03 * np.arange(b, dtype=np.float64)
+    s3 = np.array([0.5], dtype=np.float64)
+    s4 = 0.54 + 0.03 * np.arange(b, dtype=np.float64)
+    s5 = 0.95 + 0.01 * np.arange(a, dtype=np.float64)
 
-_T = _compute_T()
+    return np.concatenate([s1, s2, s3, s4, s5])
 
+_T = _compute_T(size=41, first_slice=6)
 _ETA = np.pi * _T
+
 _COS_ETA = np.cos(_ETA)
 _SIN_ETA = np.sin(_ETA)
 
 _U = np.abs(1 - 2*_T)
+
+_even = np.arange(n-1, step=2)
+_odd = _even + 1
+
+del _T
+del _ETA
+del _compute_T

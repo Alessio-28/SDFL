@@ -21,15 +21,17 @@ _A = np.array(
 n: int = _A.size
 
 def _compute_starting_point() -> npt.NDArray[np.float64]:
-    xbar = np.zeros(_A.shape, dtype=np.float64)
+    xbar = np.zeros_like(_A)
 
-    xbar[:, 0]    = (               _A[:, 0]    + _A[:, 1] )/3
-    xbar[:, 1:-1] = (xbar[:, :-2] + _A[:, 1:-1] + _A[:, 2:])/3
+    xbar[:, 0] = (_A[:, 0] + _A[:, 1]) / 3
 
-    xbar[0, -1]   = (xbar[0, -2]  + _A[0, -1]   + 5.5     )/3
-    xbar[1, -1]   = (xbar[1, -2]  + _A[1, -1]   - 1       )/3
+    for j in range(1, xbar.shape[1] - 1):
+        xbar[:, j] = (xbar[:, j-1] + _A[:, j] + _A[:, j+1]) / 3
 
-    return xbar.reshape(xbar.size)
+    terms = np.array([5.5, -1], dtype=np.float64)
+    xbar[:, -1] = (xbar[:, -2] + _A[:, -1] + terms) / 3
+
+    return xbar.ravel()
 
 starting_point: npt.NDArray[np.float64] = _compute_starting_point()
 
@@ -37,13 +39,15 @@ def feval(x: npt.NDArray[np.float64]) -> np.float64:
     x1 = x[:_m]
     x2 = x[_m:]
 
-    f = (np.sqrt(x1[0]**2 + x2[0]**2)
-         + np.sqrt((5.5 - x1[-1])**2 + (1 + x2[-1])**2)
-         + np.sum(_P * np.sqrt((_A[0] - x1)**2 + (_A[1] - x2)**2), axis=0)
-         + np.sum(_P_TILDE * np.sqrt((x1[:-1] - x1[1:])**2 + (x2[:-1] - x2[1:])**2), axis=0))
+    f1 = np.sqrt(x1[0]**2 + x2[0]**2)
+    f2 = np.sqrt((5.5 - x1[-1])**2 + (1 + x2[-1])**2)
+    f3 = np.sqrt((_A[0] - x1)**2 + (_A[1] - x2)**2) @ _P
+    f4 = np.sqrt((x1[:-1] - x1[1:])**2 + (x2[:-1] - x2[1:])**2) @ _P_TILDE
 
-    return f
+    return f1 + f2 + f3 + f4
 
 _m: int = n // 2
 _P = np.array([2, 1, 1, 5, 1, 1], dtype=np.float64)
 _P_TILDE = np.array([1, 1, 2, 3, 2], dtype=np.float64)
+
+del _compute_starting_point

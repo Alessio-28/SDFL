@@ -13,10 +13,10 @@ starting_point: npt.NDArray[np.float64] = np.array([1.3, 0.65, 0.65, 0.7, 0.6, 3
 n: int = starting_point.size
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
-    f = (_Y - x[0]*np.exp(-x[4]*_T) - x[1]*np.exp(-x[5] * (_T-x[8])**2)
-         - x[2]*np.exp(-x[6] * (_T-x[9])**2) - x[3]*np.exp(-x[7] * (_T-x[10])**2))
+    f1 = x[0]*np.exp(-x[4] * _T)
+    f2 = np.exp(-x[5:8] * (_T[:, np.newaxis]-x[8:])**2) @ x[1:4]
     
-    return np.max(np.abs(f))
+    return np.max(np.abs(_Y - (f1 + f2)))
 
 _Y = np.array(
     [

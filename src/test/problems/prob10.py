@@ -21,4 +21,13 @@ starting_point: npt.NDArray[np.float64] = np.zeros(n, dtype=np.float64)
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
     sin_x3 = np.sin(x[3])
-    return x[3]*sin_x3 + 1.7*x[4]*sin_x3 - 1.5*x[0] - 0.1*x[1]*np.cos(x[1] + x[2] - x[3]) + 0.2*x[2]**2 - x[4] - 1
+    cos_term = np.cos(x[1]+x[2]-x[3])
+
+    return (
+        - 1.5*x[0]
+        - 0.1*x[1]*cos_term
+        + 0.2*x[2]**2
+        + x[3]*sin_x3
+        + 1.7*x[4]*sin_x3
+        - 1
+    )

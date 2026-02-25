@@ -13,9 +13,12 @@ starting_point: npt.NDArray[np.float64] = np.array([25, 5, -5, -1], dtype=np.flo
 n: int = starting_point.size
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
-    return np.max(np.abs(x[3] - (x[0]*_T2 + x[1]*_T + x[2])**2 - _sqrtT))
+    f = (x[:2] @ _U) + x[2]
+    np.square(f, out=f)
+    return np.max(np.abs(x[3] - f - _sqrtT))
 
-_m: int = 21
-_T = 0.25 + (0.75/20)*np.arange(_m, dtype=np.float64)
-_T2 = _T**2
+_T = np.linspace(0.25, 1, 21, dtype=np.float64)
+_U = np.array([_T, _T**2])
 _sqrtT = np.sqrt(_T)
+
+del _T

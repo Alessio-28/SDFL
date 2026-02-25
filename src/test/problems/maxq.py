@@ -14,4 +14,4 @@ starting_point: npt.NDArray[np.float64] = 1 + np.arange(n, dtype=np.float64)
 starting_point[n//2:] *= -1
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
-    return np.max(x ** 2)
+    return np.max(x*x)

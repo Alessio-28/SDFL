@@ -20,4 +20,10 @@ n: int = 10
 starting_point: npt.NDArray[np.float64] = 6 * np.ones(n, dtype=np.float64)
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
-    return np.sum(np.log(x - 2)**2 + np.log(10 - x)**2) - np.prod(x**0.2)
+    log1 = np.log(x - 2)
+    log2 = np.log(100 - x)
+
+    np.square(log1, out=log1)
+    np.square(log2, out=log2)
+    
+    return np.sum(log1) + np.sum(log2) - np.prod(x**0.2)

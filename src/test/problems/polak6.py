@@ -17,10 +17,9 @@ def feval(x: npt.NDArray[np.float64]) -> np.float64:
     y1 = x[1] - y0**4
     y = np.array([y0, y1, x[2], x[3]], dtype=np.float64)
 
-    f = _A @ y**2 + _B @ y + _C
-    f[1:] = f[0] + 10*f[1:]
+    f = (_A @ (y*y)) + (_B @ y) + _C
 
-    return np.max(f)
+    return f[0] + 10*np.maximum(0, np.max(f[1:]))
 
 _A = np.array(
     [

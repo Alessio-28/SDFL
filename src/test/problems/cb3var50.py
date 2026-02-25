@@ -13,11 +13,14 @@ name: str = f"cb3({n})"
 starting_point: npt.NDArray[np.float64] = 2 * np.ones(n, dtype=np.float64)
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
-    f = np.empty((_m, n-1), dtype=np.float64)
-    f[0] = x[:-1]**4 + x[1:]**2
-    f[1] = (2 - x[:-1])**2 + (2 - x[1:])**2
-    f[2] = 2 * np.exp(-x[:-1] + x[1:])
+    y = x[:-1]
+    z = x[1:]
 
-    return np.sum(np.max(f, axis=0))
+    f = y**4 + z**2
+    g = (2 - y)**2 + (2 - z)**2
+    np.maximum(f, g, out=f)
 
-_m: int = 3
+    g = 2 * np.exp(z - y)
+    np.maximum(f, g, out=f)
+
+    return np.sum(f)
