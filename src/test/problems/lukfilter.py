@@ -37,7 +37,7 @@ def _compute_T(size: int, first_slice: int) -> npt.NDArray[np.float64]:
     s4 = 0.54 + 0.03 * np.arange(b, dtype=np.float64)
     s5 = 0.95 + 0.01 * np.arange(a, dtype=np.float64)
 
-    return np.concatenate([s1, s2, s3, s4, s5])
+    return np.concatenate([s1, s2, s3, s4, s5], dtype=np.float64)
 
 _T = _compute_T(size=41, first_slice=6)
 _ETA = np.pi * _T

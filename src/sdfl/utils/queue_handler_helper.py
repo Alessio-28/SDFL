@@ -59,7 +59,7 @@ class QueueHandlerHelper:
         `Arguments`
         --------
         `*logger_handler_pairs` : `tuple[Logger, Handler]`
-            Each `Handler` gets attached to the `Logger` it was paired with.
+            Each `Handler` gets attached to the `Logger` it is paired with.
         """
         self._q = Queue()
         self._q_handler = QueueHandler(self._q)
@@ -109,12 +109,12 @@ class QueueHandlerHelper:
             raise RuntimeError("QueueHandlerHelper has already been closed.")
         if self._listening:
             raise RuntimeError("QueueHandlerHelper has not been stopped yet.")
+        self._closed = True
         self._q_handler.close()
         self._q.shutdown()
 
-        def close_objects(q_obj: _QueueObjects) -> None:
+        for q_obj in self._q_objects:
             q_obj.close()
-        map(close_objects, self._q_objects)
 
     def stop_and_close(self: QueueHandlerHelper) -> None:
         """Calls both `stop()` and `close()`."""

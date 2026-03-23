@@ -14,7 +14,9 @@ n: int = starting_point.size
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
     f = _T + x[1] + 1/(x[2]*_T + x[3])
-    return np.max(np.abs(x[0] * (f / _TZ) ** _U - 1))
+    f /= _TZ
+    f **= _U
+    return np.max(np.abs(x[0] * f - 1))
 
 _T = np.array(
     [

@@ -14,7 +14,7 @@ starting_point: npt.NDArray[np.float64] = -0.1 * np.ones(n, dtype=np.float64)
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
     A = x[1:] @ _term
-    B = np.sum(np.exp(_logI * _J*x), axis=1)
+    B = np.sum(np.exp(_J*x * _logI), axis=1)
 
     y = x * x
     f = np.empty(3, dtype=np.float64)

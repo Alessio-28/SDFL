@@ -21,9 +21,7 @@ def import_data() -> dict[str, Any]:
     except OSError:
         return create_default_data_json()
 
-    if not _validate_data_json(data_dict):
-        raise ValueError(f"Invalid {DATA_JSON} file.")
-
+    _validate_data_json(data_dict)
     return data_dict
 
 
@@ -56,7 +54,7 @@ def dict_to_SDFLData(p: problem_manager.Problem, data_dict: dict[str, Any], star
     )
     return data
 
-def _validate_data_json(data_dict: dict[str, Any]) -> bool:
+def _validate_data_json(data_dict: dict[str, Any]) -> None:
     INT = (np.integer,)
     INT_OR_FLOAT = (np.integer, np.floating)
     valid_data_dict = {
@@ -70,12 +68,10 @@ def _validate_data_json(data_dict: dict[str, Any]) -> bool:
     }
 
     if set(valid_data_dict.keys()) != set(data_dict.keys()):
-        return False
+        raise ValueError(f"Invalid {DATA_JSON} file.")
 
     for k, allowed_types in valid_data_dict.items():
         v = data_dict[k]
 
         if not any([np.issubdtype(type(v), t) for t in allowed_types]): # pyright: ignore[reportUnknownArgumentType]
-            return False
-
-    return True
+            raise ValueError(f"Invalid {DATA_JSON} file.")

@@ -20,20 +20,20 @@ _A = np.array(
 
 n: int = _A.size
 
-def _compute_starting_point() -> npt.NDArray[np.float64]:
-    xbar = np.zeros_like(_A)
+def _compute_starting_point(A: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+    xbar = np.zeros_like(A)
 
-    xbar[:, 0] = (_A[:, 0] + _A[:, 1]) / 3
+    xbar[:, 0] = (A[:, 0] + A[:, 1]) / 3
 
     for j in range(1, xbar.shape[1] - 1):
-        xbar[:, j] = (xbar[:, j-1] + _A[:, j] + _A[:, j+1]) / 3
+        xbar[:, j] = (xbar[:, j-1] + A[:, j] + A[:, j+1]) / 3
 
     terms = np.array([5.5, -1], dtype=np.float64)
-    xbar[:, -1] = (xbar[:, -2] + _A[:, -1] + terms) / 3
+    xbar[:, -1] = (xbar[:, -2] + A[:, -1] + terms) / 3
 
     return xbar.ravel()
 
-starting_point: npt.NDArray[np.float64] = _compute_starting_point()
+starting_point: npt.NDArray[np.float64] = _compute_starting_point(_A)
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
     x1 = x[:_m]

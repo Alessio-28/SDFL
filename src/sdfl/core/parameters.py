@@ -26,9 +26,8 @@ class Parameters:
     `compute_bound` : `(float64) -> float64`
         Takes a step size as argument
         and computes `-gamma * c * epsilon * step_size * step_size`.
-    `validate_parameters_in_range` : `(float64, float64, float64, float64, float64) -> bool`
-        Returns `true` if preconditions for `theta`, `gamma`, `c`, `eta`, and `epsilon` are met,
-        otherwise it returns `false`.
+    `validate_parameters_in_range` : `(float64, float64, float64, float64, float64) -> None`
+        Raises `ValueError` if preconditions for `theta`, `gamma`, `c`, `eta`, and `epsilon` are not met.
     """
     theta: np.float64   # in (0, 1)
     gamma: np.float64   # > 2
@@ -62,16 +61,7 @@ class Parameters:
         `epsilon` : `float64`
             Precondition: `epsilon > 0`
         """
-        if self.validate_parameters_in_range(theta, gamma, c, eta, epsilon):
-            str_error: str = (
-                "Invalid parameter values: "
-                f"{self._THETA_LOWER_BOUND} < theta < {self._THETA_UPPER_BOUND}, "
-                f"gamma > {self._GAMMA_LOWER_BOUND}, "
-                f"c > {self._C_LOWER_BOUND}, "
-                f"eta > {self._ETA_LOWER_BOUND}, "
-                f"epsilon > {self._EPSILON_LOWER_BOUND}"
-            )
-            raise ValueError(str_error)
+        Parameters.validate_parameters_in_range(theta, gamma, c, eta, epsilon)
 
         self.theta = theta
         self.gamma = gamma
@@ -95,7 +85,7 @@ class Parameters:
         return self._bound_coeff * step_size * step_size
 
     @staticmethod
-    def validate_parameters_in_range(theta: np.float64, gamma: np.float64, c: np.float64, eta: np.float64, epsilon: np.float64) -> bool:
+    def validate_parameters_in_range(theta: np.float64, gamma: np.float64, c: np.float64, eta: np.float64, epsilon: np.float64) -> None:
         """Check preconditions for the parameters.
 
         `Arguments`
@@ -114,12 +104,23 @@ class Parameters:
         `Return`
         --------
         `result` : `bool`
-            Returns `true` if all preconditions are met,
-            `false` otherwise.
+            Raises `ValueError` if preconditions are not met.
         """
-        return bool(theta <= Parameters._THETA_LOWER_BOUND
-                    or theta >= Parameters._THETA_UPPER_BOUND
-                    or gamma <= Parameters._GAMMA_LOWER_BOUND
-                    or c <= Parameters._C_LOWER_BOUND
-                    or eta <= Parameters._ETA_LOWER_BOUND
-                    or epsilon <= Parameters._EPSILON_LOWER_BOUND)
+        is_valid: bool = bool(
+            theta <= Parameters._THETA_LOWER_BOUND
+            or theta >= Parameters._THETA_UPPER_BOUND
+            or gamma <= Parameters._GAMMA_LOWER_BOUND
+            or c <= Parameters._C_LOWER_BOUND
+            or eta <= Parameters._ETA_LOWER_BOUND
+            or epsilon <= Parameters._EPSILON_LOWER_BOUND
+        )
+        if not is_valid:
+            str_error: str = (
+                "Invalid parameter values: "
+                f"{Parameters._THETA_LOWER_BOUND} < theta < {Parameters._THETA_UPPER_BOUND}, "
+                f"gamma > {Parameters._GAMMA_LOWER_BOUND}, "
+                f"c > {Parameters._C_LOWER_BOUND}, "
+                f"eta > {Parameters._ETA_LOWER_BOUND}, "
+                f"epsilon > {Parameters._EPSILON_LOWER_BOUND}"
+            )
+            raise ValueError(str_error)

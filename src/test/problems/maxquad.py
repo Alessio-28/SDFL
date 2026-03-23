@@ -16,8 +16,8 @@ def feval(x: npt.NDArray[np.float64]) -> np.float64:
     return np.max(((_A @ x) - _B) @ x)
 
 def _compute_A_B(n: int, m: int) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
-    j = 1 + np.arange(n,dtype=np.float64)
-    k = 1 + np.arange(m)[:, np.newaxis]
+    j = 1 + np.arange(n, dtype=np.float64)
+    k = 1 + np.arange(m, dtype=np.float64)[:, np.newaxis]
 
     prod  = j[:, np.newaxis] * j
     ratio = j[:, np.newaxis] / j
