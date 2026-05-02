@@ -9,17 +9,23 @@ import numpy as np
 import numpy.typing as npt
 
 name: str = "wong3"
-starting_point: npt.NDArray[np.float64] = np.array([2, 3, 5, 5, 1, 2, 7, 3, 6, 10, 2, 2, 6, 15, 1, 2, 1, 2, 1, 3], dtype = np.float64)
+starting_point: npt.NDArray[np.float64] = np.array(
+    [2, 3, 5, 5, 1, 2, 7, 3, 6, 10, 2, 2, 6, 15, 1, 2, 1, 2, 1, 3],
+    dtype=np.float64,
+)
 n: int = starting_point.size
 
+
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
-    f = (_A @ (x*x)) + (_B @ x) + _C
-    f[0]  += x[0] * x[1]
-    f[4]  += -2 * x[0] * x[1]
-    f[15] += 9 * x[16]**4
+    f = (_A @ (x * x)) + (_B @ x) + _C
+    f[0] += x[0] * x[1]
+    f[4] += -2 * x[0] * x[1]
+    f[15] += 9 * x[16] ** 4
 
-    return f[0] + 10*np.maximum(0, np.max(f[1:]))
+    return f[0] + 10 * np.maximum(0, np.max(f[1:]))
 
+
+# fmt: off
 _A = np.array(
     [
         [  1,  1, 1, 4, 1, 2, 5, 7,  2, 1, 1, 10, 5, 4, 27, 1, 1, 13, 1, 1],

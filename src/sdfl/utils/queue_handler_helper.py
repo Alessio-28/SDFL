@@ -4,6 +4,7 @@ from logging.handlers import QueueHandler, QueueListener
 from queue import Queue
 from typing import override
 
+
 class QueueHandlerHelper:
     """Handles `QueueHandler` and `QueueListener`.
 
@@ -42,6 +43,7 @@ class QueueHandlerHelper:
         Returns `True` if `close()` was called.
         Returns `False` otherwise.
     """
+
     _q: Queue[LogRecord]
     _q_handler: QueueHandler
     _q_listener: QueueListener
@@ -51,7 +53,9 @@ class QueueHandlerHelper:
     _listening: bool
     _closed: bool
 
-    def __init__(self: QueueHandlerHelper, *logger_handler_pairs: tuple[Logger, Handler]) -> None:
+    def __init__(
+        self: QueueHandlerHelper, *logger_handler_pairs: tuple[Logger, Handler]
+    ) -> None:
         """Initialises QueueHandlerHelper.
 
         It does not set a logging level for `Logger` or `Handler`.
@@ -66,9 +70,13 @@ class QueueHandlerHelper:
 
         def create_queue_objects(logger: Logger, handler: Handler) -> _QueueObjects:
             return _QueueObjects(logger, handler, self._q_handler)
+
         self._q_objects = tuple(starmap(create_queue_objects, logger_handler_pairs))
 
-        self._q_listener = QueueListener(self._q, *[p._handler for p in self._q_objects])
+        self._q_listener = QueueListener(
+            self._q,
+            *[p._handler for p in self._q_objects],
+        )
         self._listening = False
         self._closed = False
 
@@ -135,6 +143,7 @@ class QueueHandlerHelper:
         """
         return self._closed
 
+
 class _QueueFilter(Filter):
     def __init__(self: _QueueFilter, name: str = "") -> None:
         super().__init__(name)
@@ -143,13 +152,19 @@ class _QueueFilter(Filter):
     def filter(self: _QueueFilter, record: LogRecord) -> bool | LogRecord:
         return self.name == record.name
 
+
 class _QueueObjects:
     _logger: Logger
     _handler: Handler
     _q_handler: QueueHandler
     _filter: _QueueFilter
 
-    def __init__(self: _QueueObjects, logger: Logger, handler: Handler, queue_handler: QueueHandler) -> None:
+    def __init__(
+        self: _QueueObjects,
+        logger: Logger,
+        handler: Handler,
+        queue_handler: QueueHandler,
+    ) -> None:
         self._logger = logger
         self._handler = handler
         self._q_handler = queue_handler

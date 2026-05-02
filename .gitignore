@@ -1,4 +1,4 @@
-__pycache__/
-pyrightconfig.json
-pyproject.toml
 LICENCE.txt
+pyproject.toml
+.venv
+__pycache__.py

@@ -12,12 +12,15 @@ n: int = 40
 name: str = f"l1hilb({n})"
 starting_point: npt.NDArray[np.float64] = np.ones(n, dtype=np.float64)
 
+
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
-    return np.abs(x @ _W) # pyright: ignore[reportReturnType]
+    return np.abs(x @ _W)  # ty: ignore[invalid-return-type]
+
 
 def _compute_weights(n: int) -> npt.NDArray[np.float64]:
-    harmonics = 1 / np.arange(1, 2*n, dtype=np.float64)
+    harmonics = 1 / np.arange(1, 2 * n, dtype=np.float64)
     return np.convolve(harmonics, np.ones(n), mode="valid")
+
 
 _W = _compute_weights(n)
 

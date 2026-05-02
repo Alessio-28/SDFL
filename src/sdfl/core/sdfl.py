@@ -21,6 +21,7 @@ This module has a fallback logging utility
 but other ways of logging can be defined using:
 - `sdfl_logging_helper`
 """
+
 import numpy as np
 import numpy.typing as npt
 from enum import Enum
@@ -55,7 +56,16 @@ To change the message format refer to class `SDFLLoggingHelper`.
 At import attributes `msg = ''` and `end_msg = ''`.
 """
 
-def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, max_eval: int, min_step: np.float64, params: Parameters, starting_step: npt.NDArray[np.float64] | None = None, verbose: bool = False) -> SDFLResult:
+
+def SDFL(
+    obj_fun: ObjectiveFunction,
+    starting_point: Point,
+    max_eval: int,
+    min_step: np.float64,
+    params: Parameters,
+    starting_step: npt.NDArray[np.float64] | None = None,
+    verbose: bool = False,
+) -> SDFLResult:
     """Stochastic Derivative-Free Linesearch-based algorithm.
 
     Implementation of `SDFL` algorithm from `https://arxiv.org/abs/2508.00495v1`
@@ -106,8 +116,8 @@ def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, max_eval: int, min_s
     F: ObjectiveFunction = f_wrapper.eval
 
     # init_step: npt.NDArray[np.float64] = np.zeros(n, dtype=np.float64)     # \bar{\alpha}
-    accepted_step: npt.NDArray[np.float64] = np.zeros(n, dtype=np.float64) # \alpha
-    tentative_step: npt.NDArray[np.float64] = starting_step.copy()         # \tilde{\alpha}
+    accepted_step: npt.NDArray[np.float64] = np.zeros(n, dtype=np.float64)  # \alpha
+    tentative_step: npt.NDArray[np.float64] = starting_step.copy()  # \tilde{\alpha}
     max_tentative_step: np.float64 = np.max(tentative_step)
 
     eta: np.float64 = params.eta
@@ -137,12 +147,27 @@ def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, max_eval: int, min_s
                 step: np.float64 = tentative_step[i]
                 bound: np.float64 = params.compute_bound(step)
 
-                dir_res, fun_eval_at_direction = _choose_direction(F, current_point, fun_eval_at_cur_point, step, i, bound)
+                dir_res, fun_eval_at_direction = _choose_direction(
+                    F,
+                    current_point,
+                    fun_eval_at_cur_point,
+                    step,
+                    i,
+                    bound,
+                )
 
                 if dir_res is _DirectionResult.FAILURE:
                     accepted_step[i] = 0
                 else:
-                    current_point[i], accepted_step[i] = _line_search(F, current_point, fun_eval_at_direction, dir_res.value, step, i, bound)
+                    current_point[i], accepted_step[i] = _line_search(
+                        F,
+                        current_point,
+                        fun_eval_at_direction,
+                        dir_res.value,
+                        step,
+                        i,
+                        bound,
+                    )
                     new_point_found = True
 
                 prev_dir_res = dir_res
@@ -156,14 +181,23 @@ def SDFL(obj_fun: ObjectiveFunction, starting_point: Point, max_eval: int, min_s
         result: SDFLResult = SDFLResult(current_point, fun_eval_at_cur_point, f_wrapper.nfev)
 
         if verbose:
-                sdfl_logging_helper.log_end_msg(result.x, result.f, result.nfev)
+            sdfl_logging_helper.log_end_msg(result.x, result.f, result.nfev)
     finally:
         fl.stop_fallback_logging(sdfl_logging_helper)
         np.seterr(**olderr)
 
     return result
 
-def _choose_direction(obj_fun: ObjectiveFunction, point: Point, fun_eval_at_point: np.float64, step_size: np.float64, axis: int, bound: np.float64) -> tuple[_DirectionResult, np.float64]:
+
+def _choose_direction(
+    obj_fun: ObjectiveFunction,
+    point: Point,
+    fun_eval_at_point: np.float64,
+    step_size: np.float64,
+    axis: int,
+    bound: np.float64,
+) -> tuple[_DirectionResult, np.float64]:
+
     elem: np.float64 = point[axis]
     F_bound: np.float64 = fun_eval_at_point + bound
     dir_res: _DirectionResult = _DirectionResult.POSITIVE
@@ -178,15 +212,25 @@ def _choose_direction(obj_fun: ObjectiveFunction, point: Point, fun_eval_at_poin
         fun_eval_at_direction = obj_fun(point)
 
         if fun_eval_at_direction > F_bound:
-            dir_res = _DirectionResult.FAILURE 
+            dir_res = _DirectionResult.FAILURE
         else:
-            dir_res = _DirectionResult.NEGATIVE 
+            dir_res = _DirectionResult.NEGATIVE
 
     # Restore changes
     point[axis] = elem
     return (dir_res, fun_eval_at_direction)
 
-def _line_search(obj_fun: ObjectiveFunction, point: Point, fun_eval_at_point: np.float64, direction_sign: int, step_size: np.float64, axis: int, bound: np.float64) -> tuple[np.float64, np.float64]:
+
+def _line_search(
+    obj_fun: ObjectiveFunction,
+    point: Point,
+    fun_eval_at_point: np.float64,
+    direction_sign: int,
+    step_size: np.float64,
+    axis: int,
+    bound: np.float64,
+) -> tuple[np.float64, np.float64]:
+
     elem: np.float64 = point[axis]
     step: np.float64 = step_size * direction_sign
     step_2: np.float64 = step * 2
@@ -199,12 +243,13 @@ def _line_search(obj_fun: ObjectiveFunction, point: Point, fun_eval_at_point: np
     F_b: np.float64 = obj_fun(point)
     while F_b - F_a <= bound * power2 * power2:
         power2 *= 2
-        prev_value, point[axis] = point[axis], elem + power2*step_2
+        prev_value, point[axis] = point[axis], elem + power2 * step_2
         F_a, F_b = F_b, obj_fun(point)
 
     # Restore changes
     point[axis] = elem
-    return prev_value, step_size * power2 
+    return prev_value, step_size * power2
+
 
 class SDFLResult:
     """Contains the result of `SDFL`.
@@ -230,11 +275,15 @@ class SDFLResult:
 
     @override
     def __str__(self: SDFLResult) -> str:
-        return (f"x = {self.x}\n"
-                f"f(x) = {self.f}\n"
-                f"nfev = {self.nfev}\n")
+        return f"x = {self.x}\nf(x) = {self.f}\nnfev = {self.nfev}\n"
 
-def _validate_sdfl_args(starting_point: Point, max_eval: int, min_step: np.float64, starting_step: npt.NDArray[np.float64] | None = None) -> None:
+
+def _validate_sdfl_args(
+    starting_point: Point,
+    max_eval: int,
+    min_step: np.float64,
+    starting_step: npt.NDArray[np.float64] | None = None,
+) -> None:
     """Precondition checks for `SDFL`."""
 
     if not isinstance(starting_point, np.ndarray):
@@ -256,6 +305,7 @@ def _validate_sdfl_args(starting_point: Point, max_eval: int, min_step: np.float
         raise ValueError("max_eval must be a positive integer.")
     if min_step <= 0:
         raise ValueError("min_step must be a positive real number.")
+
 
 class _FunctionWrapper:
     """Objective function wrapper, counts function evaluations.
@@ -310,6 +360,7 @@ class _FunctionWrapper:
         self.nfev += 1
         return self.obj_fun(x)
 
+
 class _DirectionResult(Enum):
     """Result of `_choose_direction()`.
 
@@ -323,6 +374,6 @@ class _DirectionResult(Enum):
         `_choose_direction()` terminated without finding a suitable result.
     """
 
-    POSITIVE =  1
+    POSITIVE = 1
     NEGATIVE = -1
-    FAILURE  =  0
+    FAILURE = 0

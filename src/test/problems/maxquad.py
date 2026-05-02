@@ -12,14 +12,18 @@ name: str = "maxquad"
 n: int = 10
 starting_point: npt.NDArray[np.float64] = np.zeros(n, dtype=np.float64)
 
+
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
     return np.max(((_A @ x) - _B) @ x)
 
-def _compute_A_B(n: int, m: int) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
+
+def _compute_A_B(
+    n: int, m: int
+) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
     j = 1 + np.arange(n, dtype=np.float64)
     k = 1 + np.arange(m, dtype=np.float64)[:, np.newaxis]
 
-    prod  = j[:, np.newaxis] * j
+    prod = j[:, np.newaxis] * j
     ratio = j[:, np.newaxis] / j
     ratio = np.minimum(ratio, ratio.T)
 
@@ -32,11 +36,12 @@ def _compute_A_B(n: int, m: int) -> tuple[npt.NDArray[np.float64], npt.NDArray[n
 
     diag_idx = np.arange(n)
     A = base * k_sin[:, :, np.newaxis]
-    A[:, diag_idx, diag_idx] += (j/10) * k_sin  + base_sum_abs * np.abs(k_sin)
+    A[:, diag_idx, diag_idx] += (j / 10) * k_sin + base_sum_abs * np.abs(k_sin)
 
-    B = np.exp(j/k) * np.sin(j*k)
-    
+    B = np.exp(j / k) * np.sin(j * k)
+
     return (A, B)
+
 
 _A, _B = _compute_A_B(n, 5)
 

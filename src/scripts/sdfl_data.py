@@ -1,8 +1,9 @@
 import numpy as np
 import numpy.typing as npt
 
-from ..test import problem_manager
-from ..sdfl.core import parameters, sdfl
+from test import problem_manager
+from sdfl.core import parameters, sdfl
+
 
 class SDFLData:
     problem: problem_manager.Problem
@@ -11,8 +12,20 @@ class SDFLData:
     min_step: np.float64
     params: parameters.Parameters
 
-    def __init__(self: SDFLData, problem: problem_manager.Problem, max_eval: int, min_step: np.float64, params: parameters.Parameters, starting_step: npt.NDArray[np.float64] | None = None) -> None:
-        sdfl._validate_sdfl_args(problem.starting_point, max_eval, min_step, starting_step)
+    def __init__(
+        self: SDFLData,
+        problem: problem_manager.Problem,
+        max_eval: int,
+        min_step: np.float64,
+        params: parameters.Parameters,
+        starting_step: npt.NDArray[np.float64] | None = None,
+    ) -> None:
+        sdfl._validate_sdfl_args(
+            problem.starting_point,
+            max_eval,
+            min_step,
+            starting_step,
+        )
 
         self.problem = problem
         self.max_eval = max_eval

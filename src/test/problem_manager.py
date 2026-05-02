@@ -1,11 +1,11 @@
 ############################################################################################
 #
-#description  (problems for mixed-integer problems with AT LEAST
+# description  (problems for mixed-integer problems with AT LEAST
 #              2 discrete variables and 2 continuous variables)
 #
-#This python module exports the following objects:
-#- problem : a python class
-#- prob_collection : A dictionary of entries "probname" => problem object
+# This python module exports the following objects:
+# - problem : a python class
+# - prob_collection : A dictionary of entries "probname" => problem object
 #
 # a problem object is a structured type that has the following attributes:
 # name   : string - name of the problem
@@ -19,7 +19,8 @@ import importlib
 import pathlib
 import numpy as np
 
-from ..sdfl.core.typing import Point, ObjectiveFunction
+from sdfl.core.typing import Point, ObjectiveFunction
+
 
 class Problem:
     name: str
@@ -27,7 +28,13 @@ class Problem:
     n: int
     feval: ObjectiveFunction
 
-    def __init__(self: Problem, name: str, starting_point: Point, n: int, feval: ObjectiveFunction) -> None:
+    def __init__(
+        self: Problem,
+        name: str,
+        starting_point: Point,
+        n: int,
+        feval: ObjectiveFunction,
+    ) -> None:
         if not isinstance(starting_point, np.ndarray):
             raise ValueError("Starting_point must be a ndarray.")
         if len(starting_point.shape) != 1:
@@ -40,6 +47,7 @@ class Problem:
         self.n = n
         self.feval = feval
 
+
 def import_problem(problem_module: str) -> Problem:
     try:
         module = importlib.import_module(problem_module)
@@ -47,7 +55,7 @@ def import_problem(problem_module: str) -> Problem:
             name=module.name,
             starting_point=module.starting_point,
             n=module.n,
-            feval=module.feval
+            feval=module.feval,
         )
     except ModuleNotFoundError:
         raise ModuleNotFoundError("Problem file not found.")
@@ -56,7 +64,10 @@ def import_problem(problem_module: str) -> Problem:
 
     return problem
 
+
 _problems: dict[str, Problem] | None = None
+
+
 def _get_problems(problem_module: str) -> dict[str, Problem]:
     global _problems
     if _problems is not None:
@@ -69,13 +80,16 @@ def _get_problems(problem_module: str) -> dict[str, Problem]:
             _problems[problem.name] = problem
     return _problems
 
+
 def get_default_problems() -> dict[str, Problem]:
     _TEST_FUNCTION_MODULE: str = "src.test.problems"
     return _get_problems(_TEST_FUNCTION_MODULE)
 
+
 def get_problem_names() -> list[str]:
-   return list(get_default_problems().keys())
+    return list(get_default_problems().keys())
+
 
 def print_problem_names() -> None:
     problems: list[str] = get_problem_names()
-    print(*problems, sep = "\n")
+    print(*problems, sep="\n")

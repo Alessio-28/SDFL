@@ -1,4 +1,5 @@
 from collections.abc import Mapping
+
 # import string
 import logging
 
@@ -16,6 +17,7 @@ import numpy.typing as npt
 #     @staticmethod
 #     def _validate_messages(msg: str, allowed: frozenset[str]) -> None:
 #         pass
+
 
 class SDFLLoggingHelper:
     """Helper class for logging.
@@ -38,11 +40,17 @@ class SDFLLoggingHelper:
     `log_end_msg` : Same signature as `logging.Logger.log()`, except for arguments `level` and `msg`.
         Logs `end_msg` with `logger` at level `logger.level`.
     """
+
     logger: logging.Logger
     msg: str
     end_msg: str
 
-    def __init__(self: SDFLLoggingHelper, logger: logging.Logger, msg: str = "", end_msg: str = "") -> None:
+    def __init__(
+        self: SDFLLoggingHelper,
+        logger: logging.Logger,
+        msg: str = "",
+        end_msg: str = "",
+    ) -> None:
         self.logger = logger
         self.msg = msg
         self.end_msg = end_msg
@@ -54,7 +62,8 @@ class SDFLLoggingHelper:
         exc_info: logging._ExcInfoType = None,
         stack_info: bool = False,
         stacklevel: int = 1,
-        extra: Mapping[str, object] | None = None) -> None:
+        extra: Mapping[str, object] | None = None,
+    ) -> None:
 
         self.logger.log(
             self.logger.getEffectiveLevel(),
@@ -63,7 +72,7 @@ class SDFLLoggingHelper:
             exc_info=exc_info,
             stack_info=stack_info,
             stacklevel=stacklevel,
-            extra=extra
+            extra=extra,
         )
 
     def log_msg(
@@ -74,7 +83,8 @@ class SDFLLoggingHelper:
         exc_info: logging._ExcInfoType = None,
         stack_info: bool = False,
         stacklevel: int = 1,
-        extra: Mapping[str, object] | None = None) -> None:
+        extra: Mapping[str, object] | None = None,
+    ) -> None:
 
         self.log(
             self.msg,
@@ -84,7 +94,7 @@ class SDFLLoggingHelper:
             exc_info=exc_info,
             stack_info=stack_info,
             stacklevel=stacklevel,
-            extra=extra
+            extra=extra,
         )
 
     def log_end_msg(
@@ -95,7 +105,8 @@ class SDFLLoggingHelper:
         exc_info: logging._ExcInfoType = None,
         stack_info: bool = False,
         stacklevel: int = 1,
-        extra: Mapping[str, object] | None = None) -> None:
+        extra: Mapping[str, object] | None = None,
+    ) -> None:
 
         self.log(
             self.end_msg,
@@ -105,5 +116,5 @@ class SDFLLoggingHelper:
             exc_info=exc_info,
             stack_info=stack_info,
             stacklevel=stacklevel,
-            extra=extra
+            extra=extra,
         )

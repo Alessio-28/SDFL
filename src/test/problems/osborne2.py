@@ -9,14 +9,19 @@ import numpy as np
 import numpy.typing as npt
 
 name: str = "osborne2"
-starting_point: npt.NDArray[np.float64] = np.array([1.3, 0.65, 0.65, 0.7, 0.6, 3, 5, 7, 2, 4.5, 5.5], dtype=np.float64)
+starting_point: npt.NDArray[np.float64] = np.array(
+    [1.3, 0.65, 0.65, 0.7, 0.6, 3, 5, 7, 2, 4.5, 5.5],
+    dtype=np.float64,
+)
 n: int = starting_point.size
 
+
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
-    f1 = x[0]*np.exp(-x[4] * _T)
-    f2 = np.exp(-x[5:8] * (_T[:, np.newaxis]-x[8:])**2) @ x[1:4]
-    
+    f1 = x[0] * np.exp(-x[4] * _T)
+    f2 = np.exp(-x[5:8] * (_T[:, np.newaxis] - x[8:]) ** 2) @ x[1:4]
+
     return np.max(np.abs(_Y - (f1 + f2)))
+
 
 _Y = np.array(
     [
@@ -84,8 +89,8 @@ _Y = np.array(
         0.292,
         0.162,
         0.098,
-        0.054
+        0.054,
     ],
-    dtype=np.float64
+    dtype=np.float64,
 )
 _T = np.arange(_Y.size, dtype=np.float64) / 10

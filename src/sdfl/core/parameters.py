@@ -5,6 +5,7 @@ related to them.
 
 import numpy as np
 
+
 class Parameters:
     """Contains parameters used by `SDFL`
 
@@ -29,11 +30,12 @@ class Parameters:
     `validate_parameters_in_range` : `(float64, float64, float64, float64, float64) -> None`
         Raises `ValueError` if preconditions for `theta`, `gamma`, `c`, `eta`, and `epsilon` are not met.
     """
-    theta: np.float64   # in (0, 1)
-    gamma: np.float64   # > 2
-    c: np.float64       # > 0
-    eta: np.float64     # > 0
-    epsilon: np.float64 # > 0
+
+    theta: np.float64  # in (0, 1)
+    gamma: np.float64  # > 2
+    c: np.float64  # > 0
+    eta: np.float64  # > 0
+    epsilon: np.float64  # > 0
 
     _bound_coeff: np.float64
 
@@ -44,7 +46,14 @@ class Parameters:
     _ETA_LOWER_BOUND: int = 0
     _EPSILON_LOWER_BOUND: int = 0
 
-    def __init__(self: Parameters, theta: np.float64, gamma: np.float64, c: np.float64, eta: np.float64, epsilon: np.float64) -> None:
+    def __init__(
+        self: Parameters,
+        theta: np.float64,
+        gamma: np.float64,
+        c: np.float64,
+        eta: np.float64,
+        epsilon: np.float64,
+    ) -> None:
         """Creates a `Parameters` object.
         Raises `ValueError` if preconditions are not met.
 
@@ -76,7 +85,7 @@ class Parameters:
         `Arguments`
         --------
         `step_size` : `float64`
-        
+
         `Return`
         --------
         `result` : `float64`
@@ -85,7 +94,13 @@ class Parameters:
         return self._bound_coeff * step_size * step_size
 
     @staticmethod
-    def validate_parameters_in_range(theta: np.float64, gamma: np.float64, c: np.float64, eta: np.float64, epsilon: np.float64) -> None:
+    def validate_parameters_in_range(
+        theta: np.float64,
+        gamma: np.float64,
+        c: np.float64,
+        eta: np.float64,
+        epsilon: np.float64,
+    ) -> None:
         """Check preconditions for the parameters.
 
         `Arguments`

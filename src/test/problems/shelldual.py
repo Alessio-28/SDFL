@@ -13,21 +13,24 @@ n: int = 15
 starting_point: npt.NDArray[np.float64] = 1e-4 * np.ones(n, dtype=np.float64)
 starting_point[6] = 60
 
+
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
     y = x[:_m]
     z = x[_m:]
-    z2 = z*z
-    z3 = z2*z
+    z2 = z * z
+    z3 = z2 * z
 
-    P = (_A @ y) - 2*(_C @ z) - 3*_D*z2 - _E
+    P = (_A @ y) - 2 * (_C @ z) - 3 * _D * z2 - _E
     Q = np.sum(np.clip(P, 0, None)) - np.sum(np.clip(x, None, 0))
 
     U = np.abs(_D @ z3)
 
     V = z @ _C @ z
     W = _B @ y
-    return 2*U + V - W + 100*Q # pyright: ignore[reportReturnType]
+    return 2 * U + V - W + 100 * Q  # pyright: ignore[reportReturnType]
 
+
+# fmt: off
 _A = np.array(
     [
         [-16,  0, -3.5,  0,    0,  2, -1, -1, 1, 1],

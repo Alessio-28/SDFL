@@ -12,11 +12,13 @@ name: str = "gamma"
 starting_point: npt.NDArray[np.float64] = np.array([1, 1, 10, 1], dtype=np.float64)
 n: int = starting_point.size
 
+
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
-    f = _T + x[1] + 1/(x[2]*_T + x[3])
+    f = _T + x[1] + 1 / (x[2] * _T + x[3])
     f /= _TZ
     f **= _U
     return np.max(np.abs(x[0] * f - 1))
+
 
 _T = np.array(
     [
@@ -80,9 +82,9 @@ _T = np.array(
         200,
         300,
         500,
-        1e+5
+        1e5,
     ],
-    dtype=np.float64
+    dtype=np.float64,
 )
 _Z = np.array(
     [
@@ -146,10 +148,10 @@ _Z = np.array(
         0.99959785208794891934,
         0.99973120214935885075,
         0.99983838442420395745,
-        0.999999189398046846077
+        0.999999189398046846077,
     ],
-    dtype=np.float64
+    dtype=np.float64,
 )
 
-_TZ = (_T+1) * _Z
+_TZ = (_T + 1) * _Z
 _U = _T + 0.5

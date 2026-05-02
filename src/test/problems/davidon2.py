@@ -12,10 +12,12 @@ name: str = "davidon2"
 starting_point: npt.NDArray[np.float64] = np.array([25, 5, -5, -1], dtype=np.float64)
 n: int = starting_point.size
 
+
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
     f = (x[:2] @ _U) + x[2]
     np.square(f, out=f)
     return np.max(np.abs(x[3] - f - _sqrtT))
+
 
 _T = np.linspace(0.25, 1, 21, dtype=np.float64)
 _U = np.array([_T, _T**2])
