@@ -1,4 +1,4 @@
 LICENCE.txt
 pyproject.toml
 .venv
-__pycache__.py
+__pycache__
