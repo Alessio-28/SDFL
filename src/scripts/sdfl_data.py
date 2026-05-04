@@ -1,8 +1,8 @@
 import numpy as np
 import numpy.typing as npt
 
-from test import problem_manager
-from sdfl.core import parameters, sdfl
+from ..test import problem_manager
+from ..sdfl.core import parameters, sdfl
 
 
 class SDFLData:

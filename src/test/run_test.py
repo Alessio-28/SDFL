@@ -1,11 +1,10 @@
 import logging
-from typing import TextIO
+import typing
 import sys
 
-from sdfl.core.sdfl import SDFL, sdfl_logging_helper
-from sdfl.utils.queue_handler_helper import QueueHandlerHelper
-from sdfl.utils.logging._fallback_logging import _default_info
-from scripts.sdfl_data import SDFLData
+from ..sdfl.core.sdfl import SDFL, sdfl_logger
+from ..sdfl.utils.queue_handler_helper import QueueHandlerHelper
+from ..scripts.sdfl_data import SDFLData
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -13,20 +12,19 @@ logger: logging.Logger = logging.getLogger(__name__)
 def _setup_logging() -> QueueHandlerHelper:
     level: int = logging.INFO
 
-    handler: logging.StreamHandler[TextIO] = logging.StreamHandler(sys.stdout)
-    sdfl_handler: logging.StreamHandler[TextIO] = logging.StreamHandler(sys.stdout)
+    handler: logging.StreamHandler[typing.TextIO] = logging.StreamHandler(sys.stdout)
+    sdfl_handler: logging.StreamHandler[typing.TextIO] = logging.StreamHandler(
+        sys.stdout
+    )
 
     handler.setLevel(level)
     sdfl_handler.setLevel(level)
 
     logger.setLevel(level)
-    sdfl_logging_helper.logger.setLevel(level)
-
-    sdfl_logging_helper.msg = _default_info.msg
-    sdfl_logging_helper.end_msg = _default_info.end_msg
+    sdfl_logger.setLevel(level)
 
     return QueueHandlerHelper(
-        (sdfl_logging_helper.logger, sdfl_handler),
+        (sdfl_logger, sdfl_handler),
         (logger, handler),
     )
 

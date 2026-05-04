@@ -19,7 +19,7 @@ import importlib
 import pathlib
 import numpy as np
 
-from sdfl.core.typing import Point, ObjectiveFunction
+from ..sdfl.core.typing import Point, ObjectiveFunction
 
 
 class Problem:

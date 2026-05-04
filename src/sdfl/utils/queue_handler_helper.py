@@ -54,7 +54,8 @@ class QueueHandlerHelper:
     _closed: bool
 
     def __init__(
-        self: QueueHandlerHelper, *logger_handler_pairs: tuple[Logger, Handler]
+        self: QueueHandlerHelper,
+        *logger_handler_pairs: tuple[Logger, Handler],
     ) -> None:
         """Initialises QueueHandlerHelper.
 

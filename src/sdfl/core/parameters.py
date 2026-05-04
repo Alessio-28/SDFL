@@ -122,12 +122,12 @@ class Parameters:
             Raises `ValueError` if preconditions are not met.
         """
         is_valid: bool = bool(
-            theta <= Parameters._THETA_LOWER_BOUND
-            or theta >= Parameters._THETA_UPPER_BOUND
-            or gamma <= Parameters._GAMMA_LOWER_BOUND
-            or c <= Parameters._C_LOWER_BOUND
-            or eta <= Parameters._ETA_LOWER_BOUND
-            or epsilon <= Parameters._EPSILON_LOWER_BOUND
+            theta > Parameters._THETA_LOWER_BOUND
+            and theta < Parameters._THETA_UPPER_BOUND
+            and gamma > Parameters._GAMMA_LOWER_BOUND
+            and c > Parameters._C_LOWER_BOUND
+            and eta > Parameters._ETA_LOWER_BOUND
+            and epsilon > Parameters._EPSILON_LOWER_BOUND
         )
         if not is_valid:
             str_error: str = (

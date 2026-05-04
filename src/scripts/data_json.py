@@ -5,8 +5,8 @@ import numpy.typing as npt
 
 from . import sdfl_data
 from . import constants
-from test import problem_manager
-from sdfl.core import parameters
+from ..test import problem_manager
+from ..sdfl.core import parameters
 
 DATA_JSON: str = "data.json"
 
@@ -59,6 +59,7 @@ def dict_to_SDFLData(
         ),
         starting_step=starting_step,
     )
+
     return data
 
 

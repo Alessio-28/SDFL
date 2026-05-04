@@ -26,23 +26,21 @@ import numpy as np
 import numpy.typing as npt
 from enum import Enum
 from typing import override
-from logging import getLogger
+from logging import getLogger, Logger
 
 from .typing import Point, ObjectiveFunction
 from .parameters import Parameters
 from ..utils.logging import _fallback_logging as fl
-from ..utils.logging.sdfl_logging_helper import SDFLLoggingHelper
 
-sdfl_logging_helper: SDFLLoggingHelper = SDFLLoggingHelper(getLogger(__name__))
+sdfl_logger: Logger = getLogger(__name__)
 """Logger helper for `SDFL`.
 
 Initialised at import.
-`sdfl_logging_helper` has this module's logger as an attribute.
 Its parent has `NullHandler` attached.
 --------
 Logging level: `INFO`.
 If `SDFL` argument `verbose == True` and no other handler is attached to the logger,
-`StreamHandler` will be attached using `QueueHandler` and `QueueListener`
+`StreamHandler` will be attached using `QueueHandler` and `QueueListener`,
 and will be detached after the algorithm terminates.
 --------
 Intermediate logging messages contain (in this order):
@@ -51,9 +49,6 @@ at the current minimum point, and the `current step values`.
 The last logging message contains (in this order):
 the `minimum` point, the `objective function` evaluated
 at the minimum point, and the number of evaluations.
---------
-To change the message format refer to class `SDFLLoggingHelper`.
-At import attributes `msg = ''` and `end_msg = ''`.
 """
 
 
@@ -130,15 +125,21 @@ def SDFL(
     try:
         fun_eval_at_cur_point: np.float64 = F(current_point)
 
-        if verbose and fl.use_fallback_logging(sdfl_logging_helper):
-            fl.start_fallback_logging(sdfl_logging_helper)
+        if verbose and fl.use_fallback_logging(sdfl_logger):
+            fl.start_fallback_logging(sdfl_logger)
 
         while f_wrapper.nfev < max_eval and max_tentative_step >= min_step:
             new_point_found: bool = False
             np.maximum(tentative_step, eta * max_tentative_step, out=tentative_step)
 
             if verbose:
-                sdfl_logging_helper.log_msg(current_point, fun_eval_at_cur_point, tentative_step)
+                sdfl_logger.log(
+                    sdfl_logger.getEffectiveLevel(),
+                    "x = %s\nf(x) = %g\nstep = %s\n",
+                    current_point,
+                    fun_eval_at_cur_point,
+                    tentative_step,
+                )
 
             for i in range(n):
                 if prev_dir_res is not _DirectionResult.FAILURE:
@@ -178,12 +179,20 @@ def SDFL(
                 tentative_step *= theta
             max_tentative_step = np.max(tentative_step)
 
-        result: SDFLResult = SDFLResult(current_point, fun_eval_at_cur_point, f_wrapper.nfev)
+        result: SDFLResult = SDFLResult(
+            current_point, fun_eval_at_cur_point, f_wrapper.nfev
+        )
 
         if verbose:
-            sdfl_logging_helper.log_end_msg(result.x, result.f, result.nfev)
+            sdfl_logger.log(
+                sdfl_logger.getEffectiveLevel(),
+                "x = %s\nf(x) = %g\nstep = %d\n",
+                result.x,
+                result.f,
+                result.nfev,
+            )
     finally:
-        fl.stop_fallback_logging(sdfl_logging_helper)
+        fl.stop_fallback_logging(sdfl_logger)
         np.seterr(**olderr)
 
     return result
@@ -297,7 +306,9 @@ def _validate_sdfl_args(
         if len(starting_step.shape) != 1:
             raise ValueError("starting_step must be a 1-dimensional array.")
         if starting_point.size != starting_step.size:
-            raise ValueError("starting_point and starting_step must have the same size.")
+            raise ValueError(
+                "starting_point and starting_step must have the same size."
+            )
         if np.any(starting_step <= 0):
             raise ValueError("starting_step must be an array of positive real numbers.")
 

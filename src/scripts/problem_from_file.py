@@ -1,4 +1,4 @@
-from test import problem_manager as pm
+from ..test import problem_manager as pm
 
 PROBLEM_PY: str = "problem.py"
 

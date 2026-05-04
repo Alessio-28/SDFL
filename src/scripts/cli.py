@@ -6,8 +6,8 @@ from . import constants
 from . import data_json
 from . import sdfl_data
 from . import problem_from_file
-from test import run_test, problem_manager as pm
-from sdfl.core.parameters import Parameters
+from ..test import run_test, problem_manager as pm
+from ..sdfl.core.parameters import Parameters
 
 
 def check_arguments(parser: ap.ArgumentParser, args: ap.Namespace) -> None:
