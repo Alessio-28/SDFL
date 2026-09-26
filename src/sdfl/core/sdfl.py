@@ -14,23 +14,18 @@ See: `https://arxiv.org/abs/2508.00495v1`
 --------
 - `sdfl_logger`: logger for `SDFL` function.
 - `sdfl_logging_helper`: sets log messages format.
-
-`Logging`
---------
-This module has a fallback logging utility
-but other ways of logging can be defined using:
-- `sdfl_logging_helper`
 """
+
+from enum import Enum
+from logging import Logger, getLogger
+from typing import override
 
 import numpy as np
 import numpy.typing as npt
-from enum import Enum
-from typing import override
-from logging import getLogger, Logger
 
-from .typing import Point, ObjectiveFunction
-from .parameters import Parameters
 from ..utils.logging import _fallback_logging as fl
+from .parameters import Parameters
+from .typing import ObjectiveFunction, Point
 
 sdfl_logger: Logger = getLogger(__name__)
 """Logger helper for `SDFL`.
@@ -77,7 +72,8 @@ def SDFL(
         Preconditions:
             It must be a one dimensional array.
             If `starting_step is not None`,
-            then `starting_point.size` must be equal to `starting_step.size`.
+            then `starting_point.size` must be equal
+            to `starting_step.size`.
     `params` : `Parameters`
         See `Parameters` class.
     `max_eval` : `int`
@@ -149,25 +145,25 @@ def SDFL(
                 bound: np.float64 = params.compute_bound(step)
 
                 dir_res, fun_eval_at_direction = _choose_direction(
-                    F,
-                    current_point,
-                    fun_eval_at_cur_point,
-                    step,
-                    i,
-                    bound,
+                    obj_fun=F,
+                    point=current_point,
+                    fun_eval_at_point=fun_eval_at_cur_point,
+                    step_size=step,
+                    axis=i,
+                    bound=bound,
                 )
 
                 if dir_res is _DirectionResult.FAILURE:
                     accepted_step[i] = 0
                 else:
                     current_point[i], accepted_step[i] = _line_search(
-                        F,
-                        current_point,
-                        fun_eval_at_direction,
-                        dir_res.value,
-                        step,
-                        i,
-                        bound,
+                        obj_fun=F,
+                        point=current_point,
+                        fun_eval_at_point=fun_eval_at_direction,
+                        direction_sign=dir_res.value,
+                        step_size=step,
+                        axis=i,
+                        bound=bound,
                     )
                     new_point_found = True
 
@@ -296,13 +292,13 @@ def _validate_sdfl_args(
     """Precondition checks for `SDFL`."""
 
     if not isinstance(starting_point, np.ndarray):
-        raise ValueError("starting_point must be a ndarray.")
+        raise TypeError("starting_point must be a ndarray.")
     if len(starting_point.shape) != 1:
         raise ValueError("starting_point must be a 1-dimensional array.")
 
     if starting_step is not None:
         if not isinstance(starting_step, np.ndarray):
-            raise ValueError("starting_step must be a ndarray.")
+            raise TypeError("starting_step must be a ndarray.")
         if len(starting_step.shape) != 1:
             raise ValueError("starting_step must be a 1-dimensional array.")
         if starting_point.size != starting_step.size:
