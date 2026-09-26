@@ -1,22 +1,21 @@
 import json
-from typing import Any
+
 import numpy as np
 import numpy.typing as npt
 
-from . import sdfl_data
-from . import constants
-from ..test import problem_manager
 from ..sdfl.core import parameters
+from ..test import problem_manager
+from . import constants, sdfl_data
 
 DATA_JSON: str = "data.json"
 
 
-def export_data(data_dict: dict[str, Any]) -> None:
+def export_data(data_dict: constants.JSONProblemData) -> None:
     with open(DATA_JSON, "w") as p:
         json.dump(data_dict, p, indent=4, separators=(",", ": "))
 
 
-def import_data() -> dict[str, Any]:
+def import_data() -> constants.JSONProblemData:
     try:
         with open(DATA_JSON, "r") as p:
             data_dict = json.load(p)
@@ -27,35 +26,26 @@ def import_data() -> dict[str, Any]:
     return data_dict
 
 
-def create_default_data_json() -> dict[str, Any]:
-    data = {
-        constants.KEY_MAX_EVAL: constants.DEFAULT_MAX_EVAL,
-        constants.KEY_MIN_STEP: constants.DEFAULT_MIN_STEP,
-        constants.KEY_THETA: constants.DEFAULT_THETA,
-        constants.KEY_GAMMA: constants.DEFAULT_GAMMA,
-        constants.KEY_C: constants.DEFAULT_C,
-        constants.KEY_ETA: constants.DEFAULT_ETA,
-        constants.KEY_EPSILON: constants.DEFAULT_EPSILON,
-    }
-    export_data(data)
-    return data
+def create_default_data_json() -> constants.JSONProblemData:
+    export_data(constants.DEFAULT_JSON_DATA)
+    return constants.DEFAULT_JSON_DATA
 
 
 def dict_to_SDFLData(
     p: problem_manager.Problem,
-    data_dict: dict[str, Any],
+    data_dict: constants.JSONProblemData,
     starting_step: npt.NDArray[np.float64] | None = None,
 ) -> sdfl_data.SDFLData:
     data = sdfl_data.SDFLData(
         problem=p,
-        max_eval=data_dict[constants.KEY_MAX_EVAL],
-        min_step=data_dict[constants.KEY_MIN_STEP],
+        max_eval=data_dict["max_eval"],
+        min_step=data_dict["min_step"],
         params=parameters.Parameters(
-            theta=data_dict[constants.KEY_THETA],
-            gamma=data_dict[constants.KEY_GAMMA],
-            c=data_dict[constants.KEY_C],
-            eta=data_dict[constants.KEY_ETA],
-            epsilon=data_dict[constants.KEY_EPSILON],
+            theta=data_dict["params"]["theta"],
+            gamma=data_dict["params"]["gamma"],
+            c=data_dict["params"]["c"],
+            eta=data_dict["params"]["eta"],
+            epsilon=data_dict["params"]["epsilon"],
         ),
         starting_step=starting_step,
     )
@@ -63,24 +53,27 @@ def dict_to_SDFLData(
     return data
 
 
-def _validate_data_json(data_dict: dict[str, Any]) -> None:
-    INT = (np.integer,)
-    INT_OR_FLOAT = (np.integer, np.floating)
-    valid_data_dict = {
-        constants.KEY_MAX_EVAL: INT,
-        constants.KEY_MIN_STEP: INT_OR_FLOAT,
-        constants.KEY_THETA: INT_OR_FLOAT,
-        constants.KEY_GAMMA: INT_OR_FLOAT,
-        constants.KEY_C: INT_OR_FLOAT,
-        constants.KEY_ETA: INT_OR_FLOAT,
-        constants.KEY_EPSILON: INT_OR_FLOAT,
-    }
-
-    if set(valid_data_dict.keys()) != set(data_dict.keys()):
+# fmt: off
+def _validate_data_json(data_dict: constants.JSONProblemData) -> None:
+    if (
+        set(constants.DEFAULT_JSON_DATA.keys()) != set(data_dict.keys())
+        or set(constants.DEFAULT_JSON_DATA["params"].keys()) != set(data_dict["params"].keys())
+    ):
         raise ValueError(f"Invalid {DATA_JSON} file.")
 
-    for k, allowed_types in valid_data_dict.items():
-        v = data_dict[k]
+    def is_integer(elem):
+        return np.issubdtype(type(elem), np.integer)
 
-        if not any([np.issubdtype(type(v), t) for t in allowed_types]):
-            raise ValueError(f"Invalid {DATA_JSON} file.")
+    def is_integer_or_float(elem):
+        return is_integer(elem) or np.issubdtype(type(elem), np.floating)
+
+    if (
+        not is_integer(data_dict["max_eval"])
+        or not is_integer_or_float(data_dict["min_step"])
+        or not is_integer_or_float(data_dict["params"]["theta"])
+        or not is_integer_or_float(data_dict["params"]["gamma"])
+        or not is_integer_or_float(data_dict["params"]["c"])
+        or not is_integer_or_float(data_dict["params"]["eta"])
+        or not is_integer_or_float(data_dict["params"]["epsilon"])
+    ):
+        raise ValueError(f"Invalid {DATA_JSON} file.")

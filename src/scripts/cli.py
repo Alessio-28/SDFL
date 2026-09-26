@@ -1,13 +1,12 @@
 import argparse as ap
+
 import numpy as np
 import numpy.typing as npt
 
-from . import constants
-from . import data_json
-from . import sdfl_data
-from . import problem_from_file
-from ..test import run_test, problem_manager as pm
 from ..sdfl.core.parameters import Parameters
+from ..test import problem_manager as pm
+from ..test import run_test
+from . import constants, data_json, problem_from_file, sdfl_data
 
 
 def check_arguments(parser: ap.ArgumentParser, args: ap.Namespace) -> None:
@@ -27,7 +26,7 @@ def check_arguments(parser: ap.ArgumentParser, args: ap.Namespace) -> None:
 
             data = check_args(args, p)
             run_test.run(data, verbose=args.verbose)
-        except (ImportError, KeyError, ValueError, FloatingPointError) as e:
+        except (ImportError, KeyError, ValueError, FloatingPointError, TypeError) as e:
             parser.error(str(e))
 
     elif args.X or args.S or args.MAX or args.MIN or args.P or args.verbose:
@@ -47,7 +46,7 @@ def check_input_problem(p: str) -> pm.Problem:
 
 def check_args(args: ap.Namespace, p: pm.Problem) -> sdfl_data.SDFLData:
     starting_step: npt.NDArray[np.float64] | None = None
-    data = data_json.import_data()
+    data: constants.JSONProblemData = data_json.import_data()
 
     if args.X:
         p.starting_point = np.array(args.X, dtype=np.float64)
@@ -55,15 +54,15 @@ def check_args(args: ap.Namespace, p: pm.Problem) -> sdfl_data.SDFLData:
         starting_step = np.array(args.S, dtype=np.float64)
     if args.MAX or args.MIN or args.P:
         if args.MAX:
-            data[constants.KEY_MAX_EVAL] = int(args.MAX[0])
+            data["max_eval"] = int(args.MAX[0])
         if args.MIN:
-            data[constants.KEY_MIN_STEP] = np.float64(args.MIN[0])
+            data["min_step"] = np.float64(args.MIN[0])
         if args.P:
-            data[constants.KEY_THETA] = args.P[0]
-            data[constants.KEY_GAMMA] = args.P[1]
-            data[constants.KEY_C] = args.P[2]
-            data[constants.KEY_ETA] = args.P[3]
-            data[constants.KEY_EPSILON] = args.P[4]
+            data["params"]["theta"] = args.P[0]
+            data["params"]["gamma"] = args.P[1]
+            data["params"]["c"] = args.P[2]
+            data["params"]["eta"] = args.P[3]
+            data["params"]["epsilon"] = args.P[4]
 
         data_json.export_data(data)
 
@@ -153,7 +152,7 @@ def set_parser_run_group(parser: ap.ArgumentParser) -> None:
         nargs="+",
         type=np.float64,
         dest="X",
-        help="Starting point of the algorigthm. List of values separated by blank spaces.\nIf not used, defualt starting point for the given problem is used.",
+        help="Starting point of the algorigthm. List of values separated by blank spaces.\nIf not used, default starting point for the given problem is used.",
     )
     run_group.add_argument(
         "-s",
