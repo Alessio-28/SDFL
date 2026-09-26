@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on Fri Oct 16 17:38:11 2020
 
@@ -17,7 +16,7 @@ n: int = starting_point.size
 
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
-    f = (_A @ (x * x)) + (_B @ x) + _C
+    f = (_A @ (x**2)) + (_B @ x) + _C
     f[0] += 10 * x[4] ** 6 + x[2] ** 4 + x[6] ** 4 - 4 * x[5] * x[6]
     f[1] += 3 * x[1] ** 4
 

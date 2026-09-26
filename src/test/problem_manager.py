@@ -14,12 +14,13 @@
 # feval  : function handle - function to compute the objective function value
 #
 ############################################################################################
-import os
 import importlib
+import os
 import pathlib
+
 import numpy as np
 
-from ..sdfl.core.typing import Point, ObjectiveFunction
+from ..sdfl.core.typing import ObjectiveFunction, Point
 
 
 class Problem:
@@ -36,7 +37,7 @@ class Problem:
         feval: ObjectiveFunction,
     ) -> None:
         if not isinstance(starting_point, np.ndarray):
-            raise ValueError("Starting_point must be a ndarray.")
+            raise TypeError("Starting_point must be a ndarray.")
         if len(starting_point.shape) != 1:
             raise ValueError("starting_point must be a 1-dimensional array.")
         if starting_point.size != n:

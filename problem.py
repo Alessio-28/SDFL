@@ -3,7 +3,8 @@ import numpy.typing as npt
 
 name: str = ""
 n: int = 0
-starting_point: npt.NDArray[np.float64] = []
+starting_point: npt.NDArray[np.float64] = np.array([], dtype=np.float64)
+
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
-	pass
+    pass

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on Fri Oct 16 17:38:11 2020
 
@@ -18,7 +17,8 @@ def feval(x: npt.NDArray[np.float64]) -> np.float64:
 
 
 def _compute_A_B(
-    n: int, m: int
+    n: int,
+    m: int,
 ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
     j = 1 + np.arange(n, dtype=np.float64)
     k = 1 + np.arange(m, dtype=np.float64)[:, np.newaxis]

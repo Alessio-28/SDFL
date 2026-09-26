@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on Fri Oct 16 17:38:11 2020
 
@@ -19,9 +18,9 @@ def feval(x: npt.NDArray[np.float64]) -> np.float64:
 
     f = y**4 + z**2
     g = (2 - y) ** 2 + (2 - z) ** 2
-    np.maximum(f, g, out=f)
+    np.maximum(f, g, out=g)
 
-    g = 2 * np.exp(z - y)
+    f = 2 * np.exp(z - y)
     np.maximum(f, g, out=f)
 
     return np.sum(f)

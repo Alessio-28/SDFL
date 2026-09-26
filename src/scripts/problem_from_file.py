@@ -9,9 +9,9 @@ def copy_template() -> None:
         "import numpy.typing as npt\n\n"
         'name: str = ""\n'
         "n: int = 0\n"
-        "starting_point: npt.NDArray[np.float64] = []\n\n"
+        "starting_point: npt.NDArray[np.float64] = np.array([], dtype=np.float64)\n\n\n"
         "def feval(x: npt.NDArray[np.float64]) -> np.float64:\n"
-        "\tpass\n"
+        "    pass\n"
     )
 
     with open(f"./{PROBLEM_PY}", "w") as p:

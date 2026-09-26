@@ -1,10 +1,10 @@
 import logging
-import typing
 import sys
+import typing
 
+from ..scripts.sdfl_data import SDFLData
 from ..sdfl.core.sdfl import SDFL, sdfl_logger
 from ..sdfl.utils.queue_handler_helper import QueueHandlerHelper
-from ..scripts.sdfl_data import SDFLData
 
 logger: logging.Logger = logging.getLogger(__name__)
 

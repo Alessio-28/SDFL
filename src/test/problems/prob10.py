@@ -5,7 +5,6 @@
 # expensive nonlinear mixed-integer black-box global optimization problems
 # Computers & Operations Research, 40(5):1383-1400 (2013)
 # **************************************************
-# -*- coding: utf-8 -*-
 """
 Created on Fri Oct 16 17:38:11 2020
 

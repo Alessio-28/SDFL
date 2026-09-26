@@ -5,7 +5,6 @@
 # integer programming problems including global optimization applications
 # Journal of Global Optimization, 59(4):865-889 (2014)
 # **************************************************
-# -*- coding: utf-8 -*-
 """
 Created on Fri Oct 16 17:38:11 2020
 

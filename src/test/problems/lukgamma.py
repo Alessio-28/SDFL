@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on Fri Oct 16 17:38:11 2020
 
@@ -155,3 +154,5 @@ _Z = np.array(
 
 _TZ = (_T + 1) * _Z
 _U = _T + 0.5
+
+del _Z

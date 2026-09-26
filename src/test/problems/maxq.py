@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on Fri Oct 16 17:38:11 2020
 
@@ -15,4 +14,4 @@ starting_point[n // 2 :] *= -1
 
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
-    return np.max(x * x)
+    return np.max(x**2)

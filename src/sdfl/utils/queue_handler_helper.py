@@ -1,5 +1,5 @@
 from itertools import starmap
-from logging import Logger, Handler, Filter, LogRecord
+from logging import Filter, Handler, Logger, LogRecord
 from logging.handlers import QueueHandler, QueueListener
 from queue import Queue
 from typing import override

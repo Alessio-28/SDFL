@@ -20,7 +20,7 @@ starting_point: npt.NDArray[np.float64] = np.ones(n, dtype=np.float64)
 
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
-    return (x * x) @ _Y
+    return (x**2) @ _Y
 
 
 _Y = np.array([3.1, 7.6, 6.9, 0.004, 19, 3, 1, 4], dtype=np.float64)

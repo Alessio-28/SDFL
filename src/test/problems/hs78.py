@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on Fri Oct 16 17:38:11 2020
 
@@ -23,4 +22,4 @@ def feval(x: npt.NDArray[np.float64]) -> np.float64:
     f[2] = x[0] ** 3 + x[1] ** 3 + 1
     np.abs(f, out=f)
 
-    return np.prod(x) + 10 * np.sum(f)  # pyright: ignore[reportReturnType]
+    return np.prod(x) + 10 * np.sum(f)
