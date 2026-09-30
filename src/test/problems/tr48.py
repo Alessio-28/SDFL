@@ -1,9 +1,3 @@
-"""
-Created on Fri Oct 16 17:38:11 2020
-
-@author: giamp
-"""
-
 import numpy as np
 import numpy.typing as npt
 
@@ -13,7 +7,7 @@ starting_point: npt.NDArray[np.float64] = np.zeros(n, dtype=np.float64)
 
 
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
-    return _D @ np.max(x - _A, axis=1) - _S @ x
+    return _D @ np.max(x - _A, axis=1) - _S @ x  # ty: ignore[invalid-return-type]
 
 
 # fmt: off

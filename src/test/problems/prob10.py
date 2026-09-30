@@ -5,11 +5,6 @@
 # expensive nonlinear mixed-integer black-box global optimization problems
 # Computers & Operations Research, 40(5):1383-1400 (2013)
 # **************************************************
-"""
-Created on Fri Oct 16 17:38:11 2020
-
-@author: giamp
-"""
 
 import numpy as np
 import numpy.typing as npt

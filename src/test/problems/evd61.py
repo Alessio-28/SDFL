@@ -1,9 +1,3 @@
-"""
-Created on Fri Oct 16 17:38:11 2020
-
-@author: giamp
-"""
-
 import numpy as np
 import numpy.typing as npt
 

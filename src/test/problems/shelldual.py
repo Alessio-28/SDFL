@@ -1,9 +1,3 @@
-"""
-Created on Fri Oct 16 17:38:11 2020
-
-@author: giamp
-"""
-
 import numpy as np
 import numpy.typing as npt
 
@@ -16,7 +10,7 @@ starting_point[6] = 60
 def feval(x: npt.NDArray[np.float64]) -> np.float64:
     y = x[:_m]
     z = x[_m:]
-    z2 = z * z
+    z2 = z**2
     z3 = z2 * z
 
     P = (_A @ y) - 2 * (_C @ z) - 3 * _D * z2 - _E
