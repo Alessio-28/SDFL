@@ -15,36 +15,15 @@ See: `https://arxiv.org/abs/2508.00495v1`
 - `sdfl_logger`: logger for `SDFL` function.
 - `sdfl_logging_helper`: sets log messages format.
 """
-
+from collections.abc import Callable
 from enum import Enum
-from logging import Logger, getLogger
 from typing import override
 
 import numpy as np
 import numpy.typing as npt
 
-from ..utils.logging import _fallback_logging as fl
 from .parameters import Parameters
 from .typing import ObjectiveFunction, Point
-
-sdfl_logger: Logger = getLogger(__name__)
-"""Logger helper for `SDFL`.
-
-Initialised at import.
-Its parent has `NullHandler` attached.
---------
-Logging level: `INFO`.
-If `SDFL` argument `verbose == True` and no other handler is attached to the logger,
-`StreamHandler` will be attached using `QueueHandler` and `QueueListener`,
-and will be detached after the algorithm terminates.
---------
-Intermediate logging messages contain (in this order):
-the `current minimum` point, the `objective function` evaluated
-at the current minimum point, and the `current step values`.
-The last logging message contains (in this order):
-the `minimum` point, the `objective function` evaluated
-at the minimum point, and the number of evaluations.
-"""
 
 
 def SDFL(
@@ -54,14 +33,14 @@ def SDFL(
     min_step: np.float64,
     params: Parameters,
     starting_step: npt.NDArray[np.float64] | None = None,
-    verbose: bool = False,
+    callback: Callable[[SDFLResult], None] | None = None,
 ) -> SDFLResult:
     """Stochastic Derivative-Free Linesearch-based algorithm.
 
     Implementation of `SDFL` algorithm from `https://arxiv.org/abs/2508.00495v1`
 
-    If preconditions are not met, a `ValueError` is raised.
-    `FloatingPointError` is raise according to `numpy.seterr(all='raise', under='ignore')`.
+    If preconditions are not met, a `ValueError` gets raised.
+    `FloatingPointError` gets raised according to `numpy.seterr(all='raise', under='ignore')`.
 
     `Arguments`
     --------
@@ -89,8 +68,9 @@ def SDFL(
             If `starting_step is not None`,
             then it must be a one dimensional array and
             `starting_step.size` must be equal to `starting_point.size`.
-    `verbose` : `bool` (default: `False`)
-        Toggles logging of intermediate and end results.
+    `callback` : `Callable[[SDFLResult], None] | None` (default: `None`)
+         Function that gets called each iteration of the algorithm.
+         Its argument contains intermediate and end results of the algorithm.
 
     `Return`
     --------
@@ -106,36 +86,33 @@ def SDFL(
     f_wrapper: _FunctionWrapper = _FunctionWrapper(obj_fun)
     F: ObjectiveFunction = f_wrapper.eval
 
-    # init_step: npt.NDArray[np.float64] = np.zeros(n, dtype=np.float64)     # \bar{\alpha}
     accepted_step: npt.NDArray[np.float64] = np.zeros(n, dtype=np.float64)  # \alpha
-    tentative_step: npt.NDArray[np.float64] = starting_step.copy()  # \tilde{\alpha}
+    tentative_step: npt.NDArray[np.float64] = starting_step[:]  # \tilde{\alpha}
     max_tentative_step: np.float64 = np.max(tentative_step)
 
     eta: np.float64 = params.eta
     theta: np.float64 = params.theta
 
-    current_point: Point = starting_point.copy()
+    current_point: Point = starting_point[:]
     prev_dir_res: _DirectionResult = _DirectionResult.FAILURE
 
     olderr = np.seterr(all="raise", under="ignore")
     try:
         fun_eval_at_cur_point: np.float64 = F(current_point)
 
-        if verbose and fl.use_fallback_logging(sdfl_logger):
-            fl.start_fallback_logging(sdfl_logger)
+        if callback is not None:
+            callback(
+                SDFLResult(
+                    current_point,
+                    fun_eval_at_cur_point,
+                    tentative_step,
+                    f_wrapper.nfev,
+                )
+            )
 
         while f_wrapper.nfev < max_eval and max_tentative_step >= min_step:
             new_point_found: bool = False
             np.maximum(tentative_step, eta * max_tentative_step, out=tentative_step)
-
-            if verbose:
-                sdfl_logger.log(
-                    sdfl_logger.getEffectiveLevel(),
-                    "x = %s\nf(x) = %g\nstep = %s\n",
-                    current_point,
-                    fun_eval_at_cur_point,
-                    tentative_step,
-                )
 
             for i in range(n):
                 if prev_dir_res is not _DirectionResult.FAILURE:
@@ -175,20 +152,23 @@ def SDFL(
                 tentative_step *= theta
             max_tentative_step = np.max(tentative_step)
 
-        result: SDFLResult = SDFLResult(
-            current_point, fun_eval_at_cur_point, f_wrapper.nfev
-        )
+            if callback is not None:
+                callback(
+                    SDFLResult(
+                        current_point,
+                        fun_eval_at_cur_point,
+                        tentative_step,
+                        f_wrapper.nfev,
+                    )
+                )
 
-        if verbose:
-            sdfl_logger.log(
-                sdfl_logger.getEffectiveLevel(),
-                "x = %s\nf(x) = %g\nstep = %d\n",
-                result.x,
-                result.f,
-                result.nfev,
-            )
+        result: SDFLResult = SDFLResult(
+            current_point,
+            fun_eval_at_cur_point,
+            tentative_step,
+            f_wrapper.nfev,
+        )
     finally:
-        fl.stop_fallback_logging(sdfl_logger)
         np.seterr(**olderr)
 
     return result
@@ -265,22 +245,37 @@ class SDFLResult:
         Minimum found by `SDFL`.
     `f` : `float64`
         Objective function evaluated at `x`.
+    `step` : `ndarray[float64]`
+        Step values.
     `nfev` : `int`
         How many objective function evaluations have been computed.
     """
 
     x: Point
     f: np.float64
+    step: npt.NDArray[np.float64]
     nfev: int
 
-    def __init__(self: SDFLResult, x: Point, f: np.float64, nfev: int) -> None:
+    def __init__(
+        self: SDFLResult,
+        x: Point,
+        f: np.float64,
+        step: npt.NDArray[np.float64],
+        nfev: int,
+    ) -> None:
         self.x = x
         self.f = f
+        self.step = step
         self.nfev = nfev
 
     @override
     def __str__(self: SDFLResult) -> str:
-        return f"x = {self.x}\nf(x) = {self.f}\nnfev = {self.nfev}\n"
+        return (
+            f"x = {self.x}\n"
+            f"f(x) = {self.f}\n"
+            f"step = {self.step}\n"
+            f"nfev = {self.nfev}\n"
+        )
 
 
 def _validate_sdfl_args(
