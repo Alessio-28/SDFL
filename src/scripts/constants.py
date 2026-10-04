@@ -3,7 +3,7 @@ from typing import TypedDict
 import numpy as np
 
 
-class JSONProblemParams(TypedDict):
+class SDFLParamsDict(TypedDict):
     theta: np.float64
     gamma: np.float64
     c: np.float64
@@ -11,13 +11,13 @@ class JSONProblemParams(TypedDict):
     epsilon: np.float64
 
 
-class JSONProblemData(TypedDict):
+class SDFLArgsDict(TypedDict):
     max_eval: int
     min_step: np.float64
-    params: JSONProblemParams
+    params: SDFLParamsDict
 
 
-DEFAULT_JSON_DATA: JSONProblemData = {
+DEFAULT_PROBLEM_DATA: SDFLArgsDict = {
     "max_eval": 5000,
     "min_step": np.float64(1e-6),
     "params": {

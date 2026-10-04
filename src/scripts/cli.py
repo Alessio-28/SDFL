@@ -48,7 +48,7 @@ def check_input_problem(p: str) -> pm.Problem:
 
 def check_args(args: ap.Namespace, p: pm.Problem) -> sdfl_data.SDFLData:
     starting_step: npt.NDArray[np.float64] | None = None
-    data: constants.JSONProblemData = data_json.import_data()
+    data: constants.SDFLArgsDict = data_json.import_data()
 
     if args.X:
         p.starting_point = np.array(args.X, dtype=np.float64)

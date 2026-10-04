@@ -10,12 +10,12 @@ from . import constants, sdfl_data
 DATA_JSON: str = "data.json"
 
 
-def export_data(data_dict: constants.JSONProblemData) -> None:
+def export_data(data_dict: constants.SDFLArgsDict) -> None:
     with open(DATA_JSON, "w") as p:
         json.dump(data_dict, p, indent=4, separators=(",", ": "))
 
 
-def import_data() -> constants.JSONProblemData:
+def import_data() -> constants.SDFLArgsDict:
     try:
         with open(DATA_JSON, "r") as p:
             data_dict = json.load(p)
@@ -26,14 +26,14 @@ def import_data() -> constants.JSONProblemData:
     return data_dict
 
 
-def create_default_data_json() -> constants.JSONProblemData:
-    export_data(constants.DEFAULT_JSON_DATA)
-    return constants.DEFAULT_JSON_DATA
+def create_default_data_json() -> constants.SDFLArgsDict:
+    export_data(constants.DEFAULT_PROBLEM_DATA)
+    return deepcopy(constants.DEFAULT_PROBLEM_DATA)
 
 
 def dict_to_SDFLData(
     p: problem_manager.Problem,
-    data_dict: constants.JSONProblemData,
+    data_dict: constants.SDFLArgsDict,
     starting_step: npt.NDArray[np.float64] | None = None,
 ) -> sdfl_data.SDFLData:
     data = sdfl_data.SDFLData(
@@ -54,12 +54,14 @@ def dict_to_SDFLData(
 
 
 # fmt: off
-def _validate_data_json(data_dict: constants.JSONProblemData) -> None:
+def _validate_data_json(data_dict: constants.SDFLArgsDict) -> None:
+    err_str: str = f"Invalid {DATA_JSON} file."
+
     if (
-        set(constants.DEFAULT_JSON_DATA.keys()) != set(data_dict.keys())
-        or set(constants.DEFAULT_JSON_DATA["params"].keys()) != set(data_dict["params"].keys())
+        set(constants.DEFAULT_PROBLEM_DATA.keys()) != set(data_dict.keys())
+        or set(constants.DEFAULT_PROBLEM_DATA["params"].keys()) != set(data_dict["params"].keys())
     ):
-        raise ValueError(f"Invalid {DATA_JSON} file.")
+        raise ValueError(err_str)
 
     def is_integer(elem):
         return np.issubdtype(type(elem), np.integer)
@@ -76,4 +78,4 @@ def _validate_data_json(data_dict: constants.JSONProblemData) -> None:
         or not is_integer_or_float(data_dict["params"]["eta"])
         or not is_integer_or_float(data_dict["params"]["epsilon"])
     ):
-        raise ValueError(f"Invalid {DATA_JSON} file.")
+        raise ValueError(err_str)
