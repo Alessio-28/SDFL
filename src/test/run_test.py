@@ -48,18 +48,19 @@ def run(data: SDFLData, verbose: bool = False) -> None:
         q.start()
         logger.info("Problem: %s", data.problem.name)
 
-    result: SDFLResult = SDFL(
-        data.problem.feval,
-        data.problem.starting_point,
-        data.max_eval,
-        data.min_step,
-        data.params,
-        data.starting_step,
-        callback=callback,
-    )
-
-    if q is not None:
-        q.stop_and_close()
+    try:
+        result: SDFLResult = SDFL(
+            data.problem.feval,
+            data.problem.starting_point,
+            data.max_eval,
+            data.min_step,
+            data.params,
+            data.starting_step,
+            callback=callback,
+        )
+    finally:
+        if q is not None:
+            q.stop_and_close()
 
     print(
         f"Problem: {data.problem.name}\n"
