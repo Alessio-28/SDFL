@@ -1,4 +1,6 @@
 import json
+from copy import deepcopy
+from typing import Any
 
 import numpy as np
 import numpy.typing as npt
@@ -17,7 +19,7 @@ def export_data(data_dict: constants.SDFLArgsDict) -> None:
 
 def import_data() -> constants.SDFLArgsDict:
     try:
-        with open(DATA_JSON, "r") as p:
+        with open(DATA_JSON) as p:
             data_dict = json.load(p)
     except OSError:
         return create_default_data_json()
@@ -63,10 +65,10 @@ def _validate_data_json(data_dict: constants.SDFLArgsDict) -> None:
     ):
         raise ValueError(err_str)
 
-    def is_integer(elem):
+    def is_integer(elem: Any) -> bool:  # noqa: ANN401
         return np.issubdtype(type(elem), np.integer)
 
-    def is_integer_or_float(elem):
+    def is_integer_or_float(elem: Any) -> bool:  # noqa: ANN401
         return is_integer(elem) or np.issubdtype(type(elem), np.floating)
 
     if (

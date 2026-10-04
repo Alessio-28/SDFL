@@ -40,18 +40,14 @@ def check_arguments(parser: ap.ArgumentParser, args: ap.Namespace) -> None:
             parser.error(str(e))
 
     elif args.X or args.S or args.MAX or args.MIN or args.P or args.verbose:
-        parser.error(
-            "-x, -s, --max-eval, --min-step, --params, and -v require -p or --from-file."
-        )
+        parser.error("-x, -s, --max-eval, --min-step, --params, and -v require -p or --from-file.")
 
 
 def check_input_problem(p: str) -> pm.Problem:
     try:
         return pm.get_problem(p)
     except KeyError:
-        raise KeyError(
-            "Problem not available.\n\t       Run -l to list available problems."
-        )
+        raise KeyError("Problem not available.\n\t       Run -l to list available problems.")
 
 
 def check_args(args: ap.Namespace, p: pm.Problem) -> sdfl_data.SDFLData:
@@ -162,7 +158,10 @@ def set_parser_run_group(parser: ap.ArgumentParser) -> None:
         nargs="+",
         type=np.float64,
         dest="X",
-        help="Starting point of the algorigthm. List of values separated by blank spaces.\nIf not used, default starting point for the given problem is used.",
+        help=(
+            "Starting point of the algorigthm. List of values separated by blank spaces.\n"
+            "If not used, default starting point for the given problem is used."
+        ),
     )
     run_group.add_argument(
         "-s",
@@ -170,7 +169,10 @@ def set_parser_run_group(parser: ap.ArgumentParser) -> None:
         nargs="+",
         type=np.float64,
         dest="S",
-        help="Starting step values of the algorigthm. List of values separated by blank spaces.\nIf not used, starting steps get initialised appropriately.",
+        help=(
+            "Starting step values of the algorigthm. List of values separated by blank spaces.\n"
+            "If not used, starting steps get initialised appropriately."
+        ),
     )
     run_group.add_argument(
         "--max-eval",
