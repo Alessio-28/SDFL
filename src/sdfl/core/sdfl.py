@@ -9,12 +9,8 @@ See: `https://arxiv.org/abs/2508.00495v1`
 `Public classes`
 --------
 - `SDFLResult`
-
-`Public objects`
---------
-- `sdfl_logger`: logger for `SDFL` function.
-- `sdfl_logging_helper`: sets log messages format.
 """
+
 from collections.abc import Callable
 from enum import Enum
 from typing import override
@@ -40,7 +36,6 @@ def SDFL(
     Implementation of `SDFL` algorithm from `https://arxiv.org/abs/2508.00495v1`
 
     If preconditions are not met, a `ValueError` gets raised.
-    `FloatingPointError` gets raised according to `numpy.seterr(all='raise', under='ignore')`.
 
     `Arguments`
     --------
@@ -59,7 +54,7 @@ def SDFL(
         Maximum number of evaluations of the objective function.
         Precondition: `max_eval > 0`.
     `min_step` : `float64`
-        Minimum value of maximum of steps.
+        Minimum value of steps before the algorithm terminates.
         Precondition: `min_step > 0`.
     `starting_step` : `ndarray[float64] | None` (default: `None`)
         List of step values for the first iteration of the algorithm.
@@ -87,18 +82,68 @@ def SDFL(
     F: ObjectiveFunction = f_wrapper.eval
 
     accepted_step: npt.NDArray[np.float64] = np.zeros(n, dtype=np.float64)  # \alpha
-    tentative_step: npt.NDArray[np.float64] = starting_step[:]  # \tilde{\alpha}
+    tentative_step: npt.NDArray[np.float64] = starting_step.copy()  # \tilde{\alpha}
     max_tentative_step: np.float64 = np.max(tentative_step)
 
     eta: np.float64 = params.eta
     theta: np.float64 = params.theta
 
-    current_point: Point = starting_point[:]
+    current_point: Point = starting_point.copy()
     prev_dir_res: _DirectionResult = _DirectionResult.FAILURE
 
-    olderr = np.seterr(all="raise", under="ignore")
-    try:
-        fun_eval_at_cur_point: np.float64 = F(current_point)
+    fun_eval_at_cur_point: np.float64 = F(current_point)
+
+    if callback is not None:
+        callback(
+            SDFLResult(
+                current_point,
+                fun_eval_at_cur_point,
+                tentative_step,
+                f_wrapper.nfev,
+            )
+        )
+
+    while f_wrapper.nfev < max_eval and max_tentative_step >= min_step:
+        new_point_found: bool = False
+        np.maximum(tentative_step, eta * max_tentative_step, out=tentative_step)
+
+        for i in range(n):
+            if prev_dir_res is not _DirectionResult.FAILURE:
+                fun_eval_at_cur_point = F(current_point)
+
+            step: np.float64 = tentative_step[i]
+            bound: np.float64 = params.compute_bound(step)
+
+            dir_res, fun_eval_at_direction = _choose_direction(
+                obj_fun=F,
+                point=current_point,
+                fun_eval_at_point=fun_eval_at_cur_point,
+                step_size=step,
+                axis=i,
+                bound=bound,
+            )
+
+            if dir_res is _DirectionResult.FAILURE:
+                accepted_step[i] = 0
+            else:
+                current_point[i], accepted_step[i] = _line_search(
+                    obj_fun=F,
+                    point=current_point,
+                    fun_eval_at_point=fun_eval_at_direction,
+                    direction_sign=dir_res.value,
+                    step_size=step,
+                    axis=i,
+                    bound=bound,
+                )
+                new_point_found = True
+
+            prev_dir_res = dir_res
+
+        if new_point_found:
+            np.maximum(accepted_step, tentative_step, out=tentative_step)
+        else:
+            tentative_step *= theta
+        max_tentative_step = np.max(tentative_step)
 
         if callback is not None:
             callback(
@@ -110,66 +155,12 @@ def SDFL(
                 )
             )
 
-        while f_wrapper.nfev < max_eval and max_tentative_step >= min_step:
-            new_point_found: bool = False
-            np.maximum(tentative_step, eta * max_tentative_step, out=tentative_step)
-
-            for i in range(n):
-                if prev_dir_res is not _DirectionResult.FAILURE:
-                    fun_eval_at_cur_point = F(current_point)
-
-                step: np.float64 = tentative_step[i]
-                bound: np.float64 = params.compute_bound(step)
-
-                dir_res, fun_eval_at_direction = _choose_direction(
-                    obj_fun=F,
-                    point=current_point,
-                    fun_eval_at_point=fun_eval_at_cur_point,
-                    step_size=step,
-                    axis=i,
-                    bound=bound,
-                )
-
-                if dir_res is _DirectionResult.FAILURE:
-                    accepted_step[i] = 0
-                else:
-                    current_point[i], accepted_step[i] = _line_search(
-                        obj_fun=F,
-                        point=current_point,
-                        fun_eval_at_point=fun_eval_at_direction,
-                        direction_sign=dir_res.value,
-                        step_size=step,
-                        axis=i,
-                        bound=bound,
-                    )
-                    new_point_found = True
-
-                prev_dir_res = dir_res
-
-            if new_point_found:
-                np.maximum(accepted_step, tentative_step, out=tentative_step)
-            else:
-                tentative_step *= theta
-            max_tentative_step = np.max(tentative_step)
-
-            if callback is not None:
-                callback(
-                    SDFLResult(
-                        current_point,
-                        fun_eval_at_cur_point,
-                        tentative_step,
-                        f_wrapper.nfev,
-                    )
-                )
-
-        result: SDFLResult = SDFLResult(
-            current_point,
-            fun_eval_at_cur_point,
-            tentative_step,
-            f_wrapper.nfev,
-        )
-    finally:
-        np.seterr(**olderr)
+    result: SDFLResult = SDFLResult(
+        current_point,
+        fun_eval_at_cur_point,
+        tentative_step,
+        f_wrapper.nfev,
+    )
 
     return result
 
@@ -270,12 +261,7 @@ class SDFLResult:
 
     @override
     def __str__(self: SDFLResult) -> str:
-        return (
-            f"x = {self.x}\n"
-            f"f(x) = {self.f}\n"
-            f"step = {self.step}\n"
-            f"nfev = {self.nfev}\n"
-        )
+        return f"x = {self.x}\nf(x) = {self.f}\nstep = {self.step}\nnfev = {self.nfev}\n"
 
 
 def _validate_sdfl_args(
@@ -297,9 +283,7 @@ def _validate_sdfl_args(
         if len(starting_step.shape) != 1:
             raise ValueError("starting_step must be a 1-dimensional array.")
         if starting_point.size != starting_step.size:
-            raise ValueError(
-                "starting_point and starting_step must have the same size."
-            )
+            raise ValueError("starting_point and starting_step must have the same size.")
         if np.any(starting_step <= 0):
             raise ValueError("starting_step must be an array of positive real numbers.")
 
