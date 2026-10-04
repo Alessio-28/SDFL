@@ -5,6 +5,13 @@ related to them.
 
 import numpy as np
 
+_THETA_LOWER_BOUND: int = 0
+_THETA_UPPER_BOUND: int = 1
+_GAMMA_LOWER_BOUND: int = 2
+_C_LOWER_BOUND: int = 0
+_ETA_LOWER_BOUND: int = 0
+_EPSILON_LOWER_BOUND: int = 0
+
 
 class Parameters:
     """Contains parameters used by `SDFL`
@@ -38,13 +45,6 @@ class Parameters:
     epsilon: np.float64  # > 0
 
     _bound_coeff: np.float64
-
-    _THETA_LOWER_BOUND: int = 0
-    _THETA_UPPER_BOUND: int = 1
-    _GAMMA_LOWER_BOUND: int = 2
-    _C_LOWER_BOUND: int = 0
-    _ETA_LOWER_BOUND: int = 0
-    _EPSILON_LOWER_BOUND: int = 0
 
     def __init__(
         self: Parameters,
@@ -108,34 +108,29 @@ class Parameters:
         `theta` : `float64`
             Precondition: `0 < theta < 1`
         `gamma` : `float64`
-            Precondition: `c > 2`
+            Precondition: `gamma > 2`
         `c` : `float64`
             Precondition: `c > 0`
         `eta` : `float64`
             Precondition: `eta > 0`
         `epsilon` : `float64`
             Precondition: `epsilon > 0`
-
-        `Return`
-        --------
-        `result` : `bool`
-            Raises `ValueError` if preconditions are not met.
         """
         is_valid: bool = bool(
-            theta > Parameters._THETA_LOWER_BOUND
-            and theta < Parameters._THETA_UPPER_BOUND
-            and gamma > Parameters._GAMMA_LOWER_BOUND
-            and c > Parameters._C_LOWER_BOUND
-            and eta > Parameters._ETA_LOWER_BOUND
-            and epsilon > Parameters._EPSILON_LOWER_BOUND
+            theta > _THETA_LOWER_BOUND
+            and theta < _THETA_UPPER_BOUND
+            and gamma > _GAMMA_LOWER_BOUND
+            and c > _C_LOWER_BOUND
+            and eta > _ETA_LOWER_BOUND
+            and epsilon > _EPSILON_LOWER_BOUND
         )
         if not is_valid:
             str_error: str = (
                 "Invalid parameter values: "
-                f"{Parameters._THETA_LOWER_BOUND} < theta < {Parameters._THETA_UPPER_BOUND}, "
-                f"gamma > {Parameters._GAMMA_LOWER_BOUND}, "
-                f"c > {Parameters._C_LOWER_BOUND}, "
-                f"eta > {Parameters._ETA_LOWER_BOUND}, "
-                f"epsilon > {Parameters._EPSILON_LOWER_BOUND}"
+                f"{_THETA_LOWER_BOUND} < theta < {_THETA_UPPER_BOUND}, "
+                f"gamma > {_GAMMA_LOWER_BOUND}, "
+                f"c > {_C_LOWER_BOUND}, "
+                f"eta > {_ETA_LOWER_BOUND}, "
+                f"epsilon > {_EPSILON_LOWER_BOUND}"
             )
             raise ValueError(str_error)

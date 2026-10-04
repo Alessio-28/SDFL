@@ -3,9 +3,11 @@ import argparse as ap
 import numpy as np
 import numpy.typing as npt
 
-from ..sdfl.core.parameters import Parameters
-from ..test import problem_manager as pm
-from ..test import run_test
+from ..sdfl.core import parameters
+from ..test import (
+    problem_manager as pm,
+    run_test,
+)
 from . import constants, data_json, problem_from_file, sdfl_data
 
 
@@ -119,11 +121,11 @@ def set_parser_run_group(parser: ap.ArgumentParser) -> None:
     )
     params_help: str = (
         "Parameters must be written in the following order: theta gamma c eta epsilon.\n"
-        f"{Parameters._THETA_LOWER_BOUND} < theta < {Parameters._THETA_UPPER_BOUND}, "
-        f"gamma > {Parameters._GAMMA_LOWER_BOUND}, "
-        f"c > {Parameters._C_LOWER_BOUND}, "
-        f"eta > {Parameters._ETA_LOWER_BOUND}, "
-        f"epsilon > {Parameters._EPSILON_LOWER_BOUND}"
+        f"{parameters._THETA_LOWER_BOUND} < theta < {parameters._THETA_UPPER_BOUND}, "
+        f"gamma > {parameters._GAMMA_LOWER_BOUND}, "
+        f"c > {parameters._C_LOWER_BOUND}, "
+        f"eta > {parameters._ETA_LOWER_BOUND}, "
+        f"epsilon > {parameters._EPSILON_LOWER_BOUND}"
     )
 
     run_group = parser.add_argument_group(
