@@ -1,22 +1,7 @@
-############################################################################################
-#
-# description  (problems for mixed-integer problems with AT LEAST
-#              2 discrete variables and 2 continuous variables)
-#
-# This python module exports the following objects:
-# - problem : a python class
-# - prob_collection : A dictionary of entries "probname" => problem object
-#
-# a problem object is a structured type that has the following attributes:
-# name   : string - name of the problem
-# startp : numpy array - the starting point for the continuous problem
-# n      : int - the total number of variables (>= 4)
-# feval  : function handle - function to compute the objective function value
-#
-############################################################################################
-import importlib
-import os
-import pathlib
+from copy import deepcopy
+from importlib import import_module
+from pathlib import Path
+from types import ModuleType
 
 import numpy as np
 
@@ -49,46 +34,58 @@ class Problem:
         self.feval = feval
 
 
-def import_problem(problem_module: str) -> Problem:
-    try:
-        module = importlib.import_module(problem_module)
-        problem = Problem(
-            name=module.name,
-            starting_point=module.starting_point,
-            n=module.n,
-            feval=module.feval,
-        )
-    except ModuleNotFoundError:
-        raise ModuleNotFoundError("Problem file not found.")
-    except ImportError:
-        raise ImportError("Problem file does not have the required variables/function.")
-
-    return problem
-
-
+_TEST_FUNCTION_DIR: Path = Path("src/test/problems")
+_TEST_FUNCTION_MODULE: str = ".".join(_TEST_FUNCTION_DIR.parts)
 _problems: dict[str, Problem] | None = None
 
 
-def _get_problems(problem_module: str) -> dict[str, Problem]:
+def import_problem(file: str) -> Problem:
+    try:
+        module: ModuleType = import_module(file)
+    except ModuleNotFoundError:
+        raise ModuleNotFoundError(f"Module {file} not found.")
+
+    if (
+        type(getattr(module, "name", None)) != str
+        or type(getattr(module, "starting_point", None)) != np.ndarray
+        or type(getattr(module, "n", None)) != int
+        or not callable(getattr(module, "feval", None))
+    ):
+        raise AttributeError(f"Module {file} does not have the required variables or functions.")
+
+    return Problem(
+        name=module.name,
+        starting_point=module.starting_point,
+        n=module.n,
+        feval=module.feval,
+    )
+
+
+def _get_problems() -> dict[str, Problem]:
     global _problems
     if _problems is not None:
         return _problems
-    _problems = {}
-    for file in os.listdir(pathlib.PurePath(problem_module.replace(".", "/"))):
-        filename = file.split(".")
-        if len(filename) == 2 and filename[1] == "py":
-            problem = import_problem(f"{problem_module}.{filename[0]}")
-            _problems[problem.name] = problem
+
+    if not _TEST_FUNCTION_DIR.is_dir():
+        raise FileNotFoundError(f"{_TEST_FUNCTION_DIR} not found.")
+
+    _problems = {
+        problem.name: problem
+        for f in _TEST_FUNCTION_DIR.glob("*.py")
+        if f.is_file()
+        and f.stem != "__init__"
+        and (problem := import_problem(f"{_TEST_FUNCTION_MODULE}.{f.stem}"))
+    }
+
     return _problems
 
 
-def get_default_problems() -> dict[str, Problem]:
-    _TEST_FUNCTION_MODULE: str = "src.test.problems"
-    return _get_problems(_TEST_FUNCTION_MODULE)
+def get_problem(problem_name: str) -> Problem:
+    return deepcopy(_get_problems()[problem_name])
 
 
 def get_problem_names() -> list[str]:
-    return list(get_default_problems().keys())
+    return list(_get_problems().keys())
 
 
 def print_problem_names() -> None:

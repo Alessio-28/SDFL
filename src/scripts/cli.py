@@ -28,7 +28,15 @@ def check_arguments(parser: ap.ArgumentParser, args: ap.Namespace) -> None:
 
             data = check_args(args, p)
             run_test.run(data, verbose=args.verbose)
-        except (ImportError, KeyError, ValueError, FloatingPointError, TypeError) as e:
+        except (
+            AttributeError,
+            ModuleNotFoundError,
+            FileNotFoundError,
+            KeyError,
+            ValueError,
+            FloatingPointError,
+            TypeError,
+        ) as e:
             parser.error(str(e))
 
     elif args.X or args.S or args.MAX or args.MIN or args.P or args.verbose:
@@ -39,7 +47,7 @@ def check_arguments(parser: ap.ArgumentParser, args: ap.Namespace) -> None:
 
 def check_input_problem(p: str) -> pm.Problem:
     try:
-        return pm.get_default_problems()[p]
+        return pm.get_problem(p)
     except KeyError:
         raise KeyError(
             "Problem not available.\n\t       Run -l to list available problems."

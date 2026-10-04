@@ -1,6 +1,8 @@
+from pathlib import PurePath
+
 from ..test import problem_manager as pm
 
-PROBLEM_PY: str = "problem.py"
+PROBLEM_PY: PurePath = PurePath("problem.py")
 
 
 def copy_template() -> None:
@@ -14,9 +16,9 @@ def copy_template() -> None:
         "    pass\n"
     )
 
-    with open(f"./{PROBLEM_PY}", "w") as p:
+    with open(PROBLEM_PY, "w") as p:
         p.write(template)
 
 
 def load_problem() -> pm.Problem:
-    return pm.import_problem(PROBLEM_PY.split(".")[0])
+    return pm.import_problem(PROBLEM_PY.stem)
